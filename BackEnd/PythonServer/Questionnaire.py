@@ -4,10 +4,8 @@ import json
 import os
 
 from QuestionMultiAns import QuestionMultiAns
-
-
-# from QuestionOneAns import QuestionOneAns
-# from QuestionOpen import QuestionOpen
+from QuestionOneAns import QuestionOneAns
+from QuestionOpen import QuestionOpen
 
 
 class Questionnaire:
@@ -27,12 +25,12 @@ class Questionnaire:
         self.change = True
 
     @classmethod
-    def create_instance(cls, id: int):
+    def create_instance(cls, file_name: str):
         directory = "./resources"
-        filepath = os.path.join(directory, str(id) + '.json')
+        file_path = os.path.join(directory, file_name + '.json')
         print(os.listdir(directory))
         try:
-            with open(filepath, 'r') as file:
+            with open(file_path, 'r') as file:
                 data = json.load(file)
                 list_question: list[Question] = []
                 for i in range(data.get('count')):
@@ -42,21 +40,30 @@ class Questionnaire:
                         list_question.append(
                             QuestionMultiAns(question.get('ques'), question.get('ans')))
                     elif question_type == 'qoa':
-                        pass
+                        list_question.append(
+                            QuestionOneAns(question.get('ques'), question.get('ans')))
                     elif question_type == 'qo':
-                        pass
+                        QuestionOpen(question.get('ques'))
                     else:
-                        raise TypeError(f'В файле с id = {id} ошибка чтения типа фопроса {i}')
+                        raise TypeError(f'В файле {file_name} ошибка чтения типа фопроса {i}')
                 return cls(data.get('name'), list_question)
         except FileNotFoundError:
-            print(f"Файл {id}.json не найден.")
+            print(f"Файл {file_name}.json не найден.")
             return None
 
-    # @__init__.register(Question)
-    # def __init__(self, id: int):
-    #     with open(f'q{id}', 'r') as f:
-    #         dat = json.load(f)
-    #         print(dat)
+    @classmethod
+    def get_list_anc(cls):
+        directory = "./resources"
+        list_dir = os.listdir(directory)
+        d = {"countQuestionnaire": len(list_dir)}
+        i = 0
+        for dir in list_dir:
+            filepath = os.path.join(directory, dir)
+            with open(filepath, 'r') as file:
+                data = json.load(file)
+                d[f'Questionnaire{i}'] = {'name': data.get('name'), 'countQuestions': data.get('count')}
+                i += 1
+        return d
 
     def formAnc(self):
         d = {'name': self.name, 'count': len(self.questions)}
@@ -64,9 +71,10 @@ class Questionnaire:
             d[f'ques{i}'] = self.questions[i].toDict()
         return d
 
-    def load_and_init(self, id: int):
+    @classmethod
+    def load_questionnaire(cls, name: str):  # ?????????
         directory = "./resources"
-        filepath = os.path.join(directory, str(id))
+        filepath = os.path.join(directory, name + '.json')
 
         try:
             with open(filepath, 'r') as file:
@@ -74,7 +82,7 @@ class Questionnaire:
                 # get
                 return data
         except FileNotFoundError:
-            print(f"Файл {id} не найден.")
+            print(f"Файл {name} не найден.")
             return None
 
     def addQuestion(self, question: Question):
