@@ -18,12 +18,13 @@ app.add_middleware(
 
 @app.get("/")
 def get_list_anc():
-    return JSONResponse(Surveys.get_list_anc())
+    return JSONResponse(Surveys.get_list_sur())
 
 
-@app.get('/Questionnaire/{name}')
-def get_questionnaire_name(name: str):
-    return JSONResponse(Surveys.load_questionnaire(name))
+@app.get('/Surveys/{id}')
+def get_questionnaire_name(id: int):
+    s = Surveys.create_instance(id)
+    return JSONResponse(s.formAnc())
 
 
 @app.put("/upload")

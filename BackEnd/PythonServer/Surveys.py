@@ -9,70 +9,73 @@ from QuestionOpen import QuestionOpen
 
 
 class Surveys:
-    # id: int = 0
+    id: int
     questions: list[Question]
     name: str
-    change: bool = False
 
     # def __new__(cls, *args, **kwargs):
     #     cls.id += 1
     #     return super().__new__(cls)
 
-    def __init__(self, name: str = "NoName", questions: list[Question] = []):
+    def __init__(self, id, name: str = "NoName", questions: list[Question] = []):
+        self.id = id
         self.name = name
         self.questions = questions
-        self.change = True
 
     @classmethod
-    def create_instance(cls, file_name: str):
-        directory = "./resources"
-        file_path = os.path.join(directory, file_name + ".json")
-        print(os.listdir(directory))
-        try:
-            with open(file_path, "r") as file:
-                data = json.load(file)
-                list_question: list[Question] = []
-                for i in range(data.get("count")):
-                    question = data.get(f"ques{i}")
-                    question_type = question.get("type")
-                    if question_type == "qma":
-                        list_question.append(
-                            QuestionMultiAns(question.get("ques"), question.get("ans"))
-                        )
-                    elif question_type == "qoa":
-                        list_question.append(
-                            QuestionOneAns(question.get("ques"), question.get("ans"))
-                        )
-                    elif question_type == "qo":
-                        QuestionOpen(question.get("ques"))
-                    else:
-                        raise TypeError(
-                            f"В файле {file_name} ошибка чтения типа фопроса {i}"
-                        )
-                return cls(data.get("name"), list_question)
-        except FileNotFoundError:
-            print(f"Файл {file_name}.json не найден.")
-            return None
+    def create_instance(cls, id: int):
+        with sq.connect("Surveys.db") as con:
+            cur = con.cursor()
+
+            cur.execute(f"""SELECT Q.QuestionID, Q.QuestionType, Q.QuestionText, Q.AnswerOptionsCount, Q.SurveyID, Q.QuestionNumberInSurvey, Q.ResponseCount
+                                FROM Questions AS Q
+                                WHERE Q.SurveyID = {id}
+                                ORDER BY Q.QuestionNumberInSurvey;""")
+
+            list_question = []
+            for ques in cur:
+                cur_ans = con.cursor()
+
+                cur_ans.execute(f"""SELECT q.QuestionText, a.AnswerText, a.AnswerOrder, a.SelectedCount
+                                        FROM Questions q
+                                        JOIN Answers a ON q.QuestionID = a.QuestionID
+                                        WHERE q.SurveyID = {id} AND q.QuestionNumberInSurvey = {ques[5]}
+                                        ORDER BY q.QuestionNumberInSurvey, a.AnswerOrder;""")
+
+                list_ans = []
+                for ans in cur_ans:
+                    list_ans.append(ans[1])
+
+                if ques[1] == 0:
+                    list_question.append(QuestionOpen(ques[2]))
+                elif ques[1] == 1:
+                    list_question.append(QuestionOneAns(ques[2], list_ans))
+                elif ques[1] == 2:
+                    list_question.append(QuestionMultiAns(ques[2], list_ans))
+
+            name = cur.execute(f"""SELECT SurveyTitle
+                                    FROM Surveys
+                                    WHERE SurveyID = {id};""").fetchone()
+
+            return cls(id, name[0], list_question)
 
     @classmethod
-    def get_list_anc(cls):
-        directory = "./resources"
-        list_dir = os.listdir(directory)
-        d = {"countQuestionnaire": len(list_dir)}
-        i = 0
-        for dir in list_dir:
-            filepath = os.path.join(directory, dir)
-            with open(filepath, "r") as file:
-                data = json.load(file)
-                d[f"Questionnaire{i}"] = {
-                    "name": data.get("name"),
-                    "countQuestions": data.get("count"),
-                }
+    def get_list_sur(cls):
+        with sq.connect("Surveys.db") as con:
+            cur = con.cursor()
+
+            cur.execute("""SELECT COUNT(*) FROM Surveys;""")
+            d = {"countSurveys": cur.fetchone()[0]}
+
+            cur.execute("""SELECT SurveyID, SurveyTitle, NumberOfQuestions, CompletedCount FROM Surveys;""")
+            i = 0
+            for sur in cur:
+                d[f'Surveys{i}'] = {"id": sur[0], "name": sur[1], "countQuestions": sur[2], "CompletedCount": sur[3]}
                 i += 1
         return d
 
     def formAnc(self):
-        d = {"name": self.name, "count": len(self.questions)}
+        d = {"id": self.id, "name": self.name, "count": len(self.questions)}
         for i in range(len(self.questions)):
             d[f"ques{i}"] = self.questions[i].toDict()
         return d
@@ -93,27 +96,9 @@ class Surveys:
 
     def addQuestion(self, question: Question):
         self.questions.append(question)
-        self.change = True
 
     def delQuestion(self, idQ: int):
         del self.questions[idQ]
-        self.change = True
-
-    def saveQuestions(self):
-        directory = "./resources"
-        filename = self.name
-
-        if filename[-5:] != ".json":
-            filename += ".json"
-
-        # Полное имя файла
-        full_filename = os.path.join(directory, filename)
-
-        # Проверяем, существует ли файл
-        if (not (os.path.exists(full_filename))) or self.change:
-            with open(full_filename, "w") as f:
-                json.dump(self.formAnc(), f)
-                print(f"Data saved to: {full_filename}")
 
     @classmethod
     def setBD(cls):
