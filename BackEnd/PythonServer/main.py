@@ -1,8 +1,9 @@
 # uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
-from fastapi import FastAPI
+from fastapi import FastAPI, UploadFile, File, Body
 from fastapi.middleware.cors import CORSMiddleware
-from Questionnaire import *
+from fastapi.responses import JSONResponse
+from Surveys import *
 
 app = FastAPI()
 
@@ -17,9 +18,26 @@ app.add_middleware(
 
 @app.get("/")
 def get_list_anc():
-    return Questionnaire.get_list_anc()
+    return JSONResponse(Surveys.get_list_anc())
 
 
 @app.get('/Questionnaire/{name}')
 def get_questionnaire_name(name: str):
-    return Questionnaire.load_questionnaire(name)
+    return JSONResponse(Surveys.load_questionnaire(name))
+
+
+@app.put("/upload")
+async def upload_file(file: UploadFile = File(...)):
+    # Здесь вы можете обработать файл
+    return {"filename": file.filename}
+
+
+@app.put("/put")
+async def post(data=Body()):
+    name = data['name']
+    # Здесь вы можете обработать файл
+    print(name)
+
+    return {}
+
+# Surveys.setBD()
