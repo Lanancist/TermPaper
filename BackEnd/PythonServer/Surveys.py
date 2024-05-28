@@ -177,7 +177,7 @@ VALUES (2, 'Сколько ты зарабатываешь?', 5, {SurveysID}, 1,
                         if cur.fetchone() == None:
                             print("Создаю")
                             cur.execute(
-                                f"""INSERT INTO Answers (AnswerText, AnswerOrder, SelectedCount, QuestionID) VALUES ('{ans}', 1, 0, {ques["idQues"]});""")
+                                f"""INSERT INTO Answers (AnswerText, AnswerOrder, SelectedCount, QuestionID) VALUES ('{ans}', 1, 1, {ques["idQues"]});""")
                         else:
                             print("Обновляю")
                             cur.execute(
