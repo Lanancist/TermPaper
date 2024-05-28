@@ -35,9 +35,9 @@ async def upload_file(file: UploadFile = File(...)):
 
 @app.put("/put")
 async def post(data=Body()):
-    name = data['name']
+    print(data)
+    Surveys.appDate(data)
     # Здесь вы можете обработать файл
-    print(name)
 
     return {}
 

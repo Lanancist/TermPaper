@@ -1,0 +1,43 @@
+{
+  "id": 61,
+  "name": "start",
+  "count": 4,
+  "ques0": {
+    "idQues": 18,
+    "type": "qma",
+    "ques": "Сколько ты зарабатываешь?",
+    "countAns": 5,
+    "ans": [
+      1,
+      2,
+      5
+    ]
+  },
+  "ques1": {
+    "idQues": 19,
+    "type": "qoa",
+    "ques": "Отвечай!",
+    "countAns": 1,
+    "ans": [
+      1
+    ]
+  },
+  "ques2": {
+    "idQues": 20,
+    "type": "qma",
+    "ques": "А теперь сколько?",
+    "countAns": 5,
+    "ans": [
+      3,
+      5
+    ]
+  },
+  "ques3": {
+    "idQues": 21,
+    "type": "qo",
+    "ques": "Ну блин сколько?",
+    "ans": [
+      "Я НЕ ЗНАЮ!!!!!!"
+    ]
+  }
+}

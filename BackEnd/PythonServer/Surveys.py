@@ -34,6 +34,7 @@ class Surveys:
 
             list_question = []
             for ques in cur:
+                print(ques)
                 cur_ans = con.cursor()
 
                 cur_ans.execute(f"""SELECT q.QuestionText, a.AnswerText, a.AnswerOrder, a.SelectedCount
@@ -47,11 +48,11 @@ class Surveys:
                     list_ans.append(ans[1])
 
                 if ques[1] == 0:
-                    list_question.append(QuestionOpen(ques[2]))
+                    list_question.append(QuestionOpen(ques[0], ques[2]))
                 elif ques[1] == 1:
-                    list_question.append(QuestionOneAns(ques[2], list_ans))
+                    list_question.append(QuestionOneAns(ques[0], ques[2], list_ans))
                 elif ques[1] == 2:
-                    list_question.append(QuestionMultiAns(ques[2], list_ans))
+                    list_question.append(QuestionMultiAns(ques[0], ques[2], list_ans))
 
             name = cur.execute(f"""SELECT SurveyTitle
                                     FROM Surveys
@@ -145,3 +146,41 @@ VALUES ('start', 4, 0)""")
 VALUES (2, 'Сколько ты зарабатываешь?', 5, {SurveysID}, 1, 0));""")
         con.commit()
         con.close()
+
+    @classmethod
+    def appDate(cls, data: dict):
+        count = data["count"]
+
+        with sq.connect("Surveys.db") as con:
+            cur = con.cursor()
+
+            cur.execute(f"""UPDATE Surveys SET CompletedCount = CompletedCount + 1 WHERE SurveyID = {data["id"]};""")
+
+            for i in range(count):
+                ques = data[f"ques{i}"]
+
+                cur.execute(
+                    f"""UPDATE Questions SET ResponseCount = ResponseCount + 1 WHERE QuestionID IN ({ques["idQues"]});""")
+
+                for ans in ques["ans"]:
+                    if ques["type"] == 'qoa' or ques["type"] == 'qma':
+
+                        cur.execute(
+                            f"""UPDATE Answers SET SelectedCount = SelectedCount + 1 WHERE AnswerOrder IN ({ans}) AND QuestionID IN ({ques["idQues"]});""")
+
+                    elif ques["type"] == "qo":
+                        ans = ans.lower()
+
+                        cur.execute(
+                            f"""SELECT AnswerID, AnswerText, AnswerOrder, SelectedCount, QuestionID FROM Answers WHERE AnswerText = '{ans}' AND QuestionID = {ques["idQues"]};""")
+
+                        if cur.fetchone() == None:
+                            print("Создаю")
+                            cur.execute(
+                                f"""INSERT INTO Answers (AnswerText, AnswerOrder, SelectedCount, QuestionID) VALUES ('{ans}', 1, 0, {ques["idQues"]});""")
+                        else:
+                            print("Обновляю")
+                            cur.execute(
+                                f"""UPDATE Answers SET SelectedCount = SelectedCount + 1 WHERE AnswerText IN ('{ans}') AND QuestionID IN ({ques["idQues"]});""")
+
+            con.commit()
