@@ -16,3 +16,7 @@ class Question(abc.ABC):
     @abc.abstractmethod
     def toDict(self) -> dict:
         pass
+
+    @abc.abstractmethod
+    def add_in_db(self, SurveyID: int, QuestionNumberInSurvey: int):
+        pass

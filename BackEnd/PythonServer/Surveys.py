@@ -13,17 +13,13 @@ class Surveys:
     questions: list[Question]
     name: str
 
-    # def __new__(cls, *args, **kwargs):
-    #     cls.id += 1
-    #     return super().__new__(cls)
-
     def __init__(self, id, name: str = "NoName", questions: list[Question] = []):
         self.id = id
         self.name = name
         self.questions = questions
 
     @classmethod
-    def create_instance(cls, id: int):
+    def create_instance_id(cls, id: int):
         with sq.connect("Surveys.db") as con:
             cur = con.cursor()
 
@@ -34,7 +30,6 @@ class Surveys:
 
             list_question = []
             for ques in cur:
-                print(ques)
                 cur_ans = con.cursor()
 
                 cur_ans.execute(f"""SELECT q.QuestionText, a.AnswerText, a.AnswerOrder, a.SelectedCount
@@ -61,6 +56,18 @@ class Surveys:
             return cls(id, name[0], list_question)
 
     @classmethod
+    def create_instance_json(cls, data):
+        list_question = []
+        for i in range(data["count"]):
+            if data[f"ques{i}"]["type"] == "qo":
+                list_question.append(QuestionOpen(None, data[f"ques{i}"]["ques"]))
+            elif data[f"ques{i}"]["type"] == "qoa":
+                list_question.append(QuestionOneAns(None, data[f"ques{i}"]["ques"], data[f"ques{i}"]["ans"]))
+            elif data[f"ques{i}"]["type"] == "qma":
+                list_question.append(QuestionMultiAns(None, data[f"ques{i}"]["ques"], data[f"ques{i}"]["ans"]))
+        return cls(None, data["name"], list_question)
+
+    @classmethod
     def get_list_sur(cls):
         with sq.connect("Surveys.db") as con:
             cur = con.cursor()
@@ -80,20 +87,6 @@ class Surveys:
         for i in range(len(self.questions)):
             d[f"ques{i}"] = self.questions[i].toDict()
         return d
-
-    @classmethod
-    def load_questionnaire(cls, name: str):  # ?????????
-        directory = "./resources"
-        filepath = os.path.join(directory, name + ".json")
-
-        try:
-            with open(filepath, "r") as file:
-                data = json.load(file)
-                # get
-                return data
-        except FileNotFoundError:
-            print(f"Файл {name} не найден.")
-            return None
 
     def addQuestion(self, question: Question):
         self.questions.append(question)
@@ -134,21 +127,27 @@ PRIMARY KEY(AnswerID AUTOINCREMENT))""")
 
         con.close()
 
-    @classmethod
-    def addBD(cls):
-        con = sq.connect("Surveys.db")
-        cur = con.cursor()
+    def add_surveys_in_db(self):
+        with sq.connect("Surveys.db") as con:
+            cur = con.cursor()
 
-        cur.execute("""INSERT INTO Surveys (SurveyTitle, NumberOfQuestions, CompletedCount)
-VALUES ('start', 4, 0)""")
-        SurveysID = cur.lastrowid
-        cur.execute(f"""INSERT INTO Questions (QuestionType, QuestionText, AnswerOptionsCount, SurveyID, QuestionNumberInSurvey, ResponseCount)
-VALUES (2, 'Сколько ты зарабатываешь?', 5, {SurveysID}, 1, 0));""")
-        con.commit()
-        con.close()
+            cur.execute(f"""INSERT INTO Surveys (SurveyTitle, NumberOfQuestions, CompletedCount)
+                            VALUES ('{self.name}', {len(self.questions)}, 0)""")
+
+            SurveysID = cur.lastrowid
+
+            if self.id == None:
+                self.id = SurveysID
+
+            con.commit()
+
+            for index, ques in enumerate(self.questions, 1):
+                ques.add_in_db(SurveysID, index)
+
+            con.commit()
 
     @classmethod
-    def appDate(cls, data: dict):
+    def upDate(cls, data: dict):
         count = data["count"]
 
         with sq.connect("Surveys.db") as con:

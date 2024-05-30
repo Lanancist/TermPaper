@@ -17,28 +17,32 @@ app.add_middleware(
 
 
 @app.get("/")
-def get_list_anc():
+async def get_list_anc():
     return JSONResponse(Surveys.get_list_sur())
 
 
 @app.get('/Surveys/{id}')
-def get_questionnaire_name(id: int):
-    s = Surveys.create_instance(id)
+async def get_questionnaire_name(id: int):
+    s = Surveys.create_instance_id(id)
     return JSONResponse(s.formAnc())
 
 
-@app.put("/upload")
-async def upload_file(file: UploadFile = File(...)):
-    # Здесь вы можете обработать файл
-    return {"filename": file.filename}
+# @app.put("/upload")
+# async def upload_file(file: UploadFile = File(...)):
+#     # Здесь вы можете обработать файл
+#     return {"filename": file.filename}
 
 
-@app.put("/put")
+@app.put("/answers")
 async def post(data=Body()):
-    print(data)
-    Surveys.appDate(data)
-    # Здесь вы можете обработать файл
+    Surveys.upDate(data)
 
     return {}
 
-# Surveys.setBD()
+
+@app.put("/addSurveys")
+async def post(data=Body()):
+    s = Surveys.create_instance_json(data)
+    s.add_surveys_in_db()
+
+    return {}
