@@ -18,7 +18,9 @@ background-color: aqua;
 }
 
 .container{
-  display: flex;
+  max-width: 1200px;
+  padding: 10px;
+  margin: 0 auto;
 }
 
 .nav{
