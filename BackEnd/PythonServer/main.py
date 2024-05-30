@@ -46,3 +46,8 @@ async def post(data=Body()):
     s.add_surveys_in_db()
 
     return {}
+
+
+@app.delete("/Surveys/{id}")
+def delete(id: int):
+    Surveys.del_surv(id)

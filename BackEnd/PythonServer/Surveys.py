@@ -183,3 +183,19 @@ PRIMARY KEY(AnswerID AUTOINCREMENT))""")
                                 f"""UPDATE Answers SET SelectedCount = SelectedCount + 1 WHERE AnswerText IN ('{ans}') AND QuestionID IN ({ques["idQues"]});""")
 
             con.commit()
+
+    @classmethod
+    def del_surv(cls, id: int):
+        with sq.connect("Surveys.db") as con:
+            cur = con.cursor()
+
+            cur.execute(f"""SELECT COUNT(*) FROM Surveys WHERE SurveyID = {id};""")
+
+            if cur.fetchone() == (0,):
+                print('aboba!!!!!!!!!!!!!')
+
+            else:
+
+                cur.executescript(f"""BEGIN TRANSACTION; DELETE FROM Answers WHERE QuestionID IN (
+                SELECT QuestionID FROM Questions WHERE SurveyID ={id});DELETE FROM Questions WHERE SurveyID = {id};
+                DELETE FROM Surveys WHERE SurveyID = {id}; COMMIT;""")
