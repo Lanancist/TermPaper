@@ -59,12 +59,12 @@ class Surveys:
     def create_instance_json(cls, data):
         list_question = []
         for i in range(data["count"]):
-            if data[f"ques{i}"]["type"] == "qo":
-                list_question.append(QuestionOpen(None, data[f"ques{i}"]["ques"]))
-            elif data[f"ques{i}"]["type"] == "qoa":
-                list_question.append(QuestionOneAns(None, data[f"ques{i}"]["ques"], data[f"ques{i}"]["ans"]))
-            elif data[f"ques{i}"]["type"] == "qma":
-                list_question.append(QuestionMultiAns(None, data[f"ques{i}"]["ques"], data[f"ques{i}"]["ans"]))
+            if data["ques"][i]["type"] == "qo":
+                list_question.append(QuestionOpen(None, data["ques"][i]["ques"]))
+            elif data["ques"][i]["type"] == "qoa":
+                list_question.append(QuestionOneAns(None, data["ques"][i]["ques"], data["ques"][i]["ans"]))
+            elif data["ques"][i]["type"] == "qma":
+                list_question.append(QuestionMultiAns(None, data["ques"][i]["ques"], data["ques"][i]["ans"]))
         return cls(None, data["name"], list_question)
 
     @classmethod
@@ -73,19 +73,23 @@ class Surveys:
             cur = con.cursor()
 
             cur.execute("""SELECT COUNT(*) FROM Surveys;""")
-            d = {"countSurveys": cur.fetchone()[0]}
+
+            count = cur.fetchone()[0]
 
             cur.execute("""SELECT SurveyID, SurveyTitle, NumberOfQuestions, CompletedCount FROM Surveys;""")
-            i = 0
+
+            list_surveys = []
             for sur in cur:
-                d[f'Surveys{i}'] = {"id": sur[0], "name": sur[1], "countQuestions": sur[2], "CompletedCount": sur[3]}
-                i += 1
+                list_surveys.append({"id": sur[0], "name": sur[1], "countQuestions": sur[2], "CompletedCount": sur[3]})
+
+            d = {"countSurveys": count, "surveys": list_surveys}
         return d
 
     def formAnc(self):
-        d = {"id": self.id, "name": self.name, "count": len(self.questions)}
+        list_ques = []
         for i in range(len(self.questions)):
-            d[f"ques{i}"] = self.questions[i].toDict()
+            list_ques.append(self.questions[i].toDict())
+        d = {"id": self.id, "name": self.name, "count": len(self.questions), "questions": list_ques}
         return d
 
     def addQuestion(self, question: Question):
@@ -127,7 +131,7 @@ PRIMARY KEY(AnswerID AUTOINCREMENT))""")
 
         con.close()
 
-    def add_surveys_in_db(self):
+    def add_surveys_in_db(self):  # !!!!!!!!!!!!!!!!!!!!!!!
         with sq.connect("Surveys.db") as con:
             cur = con.cursor()
 
@@ -147,25 +151,38 @@ PRIMARY KEY(AnswerID AUTOINCREMENT))""")
             con.commit()
 
     @classmethod
-    def upDate(cls, data: dict):
-        count = data["count"]
+    def upDate(cls, data: dict):  # !!!!!!!!!!!!!!!!!!!!!!!
 
         with sq.connect("Surveys.db") as con:
             cur = con.cursor()
 
             cur.execute(f"""UPDATE Surveys SET CompletedCount = CompletedCount + 1 WHERE SurveyID = {data["id"]};""")
 
-            for i in range(count):
-                ques = data[f"ques{i}"]
+            print(data["questions"])
+            print('---------------------------')
+
+            for ques in data["questions"]:
+
+                print(ques)
+                print('--------------------------')
 
                 cur.execute(
                     f"""UPDATE Questions SET ResponseCount = ResponseCount + 1 WHERE QuestionID IN ({ques["idQues"]});""")
+
+                if ques.get("ans") == None:
+                    print('sssssssssssssss')
+                    con.commit()
+                    continue
+
+                print(ques.get("ans"))
 
                 for ans in ques["ans"]:
                     if ques["type"] == 'qoa' or ques["type"] == 'qma':
 
                         cur.execute(
                             f"""UPDATE Answers SET SelectedCount = SelectedCount + 1 WHERE AnswerOrder IN ({ans}) AND QuestionID IN ({ques["idQues"]});""")
+                        print("запрос",
+                              f"UPDATE Answers SET SelectedCount = SelectedCount + 1 WHERE AnswerOrder IN ({ans}) AND QuestionID IN ({ques["idQues"]});")
 
                     elif ques["type"] == "qo":
                         ans = ans.lower()
@@ -195,7 +212,6 @@ PRIMARY KEY(AnswerID AUTOINCREMENT))""")
                 print('aboba!!!!!!!!!!!!!')
 
             else:
-
                 cur.executescript(f"""BEGIN TRANSACTION; DELETE FROM Answers WHERE QuestionID IN (
                 SELECT QuestionID FROM Questions WHERE SurveyID ={id});DELETE FROM Questions WHERE SurveyID = {id};
                 DELETE FROM Surveys WHERE SurveyID = {id}; COMMIT;""")
