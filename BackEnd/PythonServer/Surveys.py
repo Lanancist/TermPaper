@@ -59,12 +59,12 @@ class Surveys:
     def create_instance_json(cls, data):
         list_question = []
         for i in range(data["count"]):
-            if data["ques"][i]["type"] == "qo":
-                list_question.append(QuestionOpen(None, data["ques"][i]["ques"]))
-            elif data["ques"][i]["type"] == "qoa":
-                list_question.append(QuestionOneAns(None, data["ques"][i]["ques"], data["ques"][i]["ans"]))
-            elif data["ques"][i]["type"] == "qma":
-                list_question.append(QuestionMultiAns(None, data["ques"][i]["ques"], data["ques"][i]["ans"]))
+            if data["questions"][i]["type"] == "qo":
+                list_question.append(QuestionOpen(None, data["questions"][i]["ques"]))
+            elif data["questions"][i]["type"] == "qoa":
+                list_question.append(QuestionOneAns(None, data["questions"][i]["ques"], data["questions"][i]["ans"]))
+            elif data["questions"][i]["type"] == "qma":
+                list_question.append(QuestionMultiAns(None, data["questions"][i]["ques"], data["questions"][i]["ans"]))
         return cls(None, data["name"], list_question)
 
     @classmethod
@@ -158,31 +158,21 @@ PRIMARY KEY(AnswerID AUTOINCREMENT))""")
 
             cur.execute(f"""UPDATE Surveys SET CompletedCount = CompletedCount + 1 WHERE SurveyID = {data["id"]};""")
 
-            print(data["questions"])
-            print('---------------------------')
-
             for ques in data["questions"]:
-
-                print(ques)
-                print('--------------------------')
-
-                cur.execute(
-                    f"""UPDATE Questions SET ResponseCount = ResponseCount + 1 WHERE QuestionID IN ({ques["idQues"]});""")
 
                 if ques.get("ans") == None:
                     print('sssssssssssssss')
                     con.commit()
                     continue
 
-                print(ques.get("ans"))
+                cur.execute(
+                    f"""UPDATE Questions SET ResponseCount = ResponseCount + 1 WHERE QuestionID IN ({ques["idQues"]});""")
 
                 for ans in ques["ans"]:
                     if ques["type"] == 'qoa' or ques["type"] == 'qma':
 
                         cur.execute(
                             f"""UPDATE Answers SET SelectedCount = SelectedCount + 1 WHERE AnswerOrder IN ({ans}) AND QuestionID IN ({ques["idQues"]});""")
-                        print("запрос",
-                              f"UPDATE Answers SET SelectedCount = SelectedCount + 1 WHERE AnswerOrder IN ({ans}) AND QuestionID IN ({ques["idQues"]});")
 
                     elif ques["type"] == "qo":
                         ans = ans.lower()
