@@ -205,3 +205,10 @@ PRIMARY KEY(AnswerID AUTOINCREMENT))""")
                 cur.executescript(f"""BEGIN TRANSACTION; DELETE FROM Answers WHERE QuestionID IN (
                 SELECT QuestionID FROM Questions WHERE SurveyID ={id});DELETE FROM Questions WHERE SurveyID = {id};
                 DELETE FROM Surveys WHERE SurveyID = {id}; COMMIT;""")
+
+    def statistics(self):
+        pass
+
+    @classmethod
+    def statistics(cls):
+        pass
