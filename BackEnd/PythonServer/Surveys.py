@@ -1,6 +1,4 @@
 import Question
-import json
-import os
 import sqlite3 as sq
 
 from QuestionMultiAns import QuestionMultiAns
@@ -99,7 +97,7 @@ class Surveys:
         del self.questions[idQ]
 
     @classmethod
-    def setBD(cls):
+    def setDB(cls):
         con = sq.connect("Surveys.db")
         cur = con.cursor()
 
@@ -160,7 +158,7 @@ PRIMARY KEY(AnswerID AUTOINCREMENT))""")
 
             for ques in data["questions"]:
 
-                if ques.get("ans") == None:
+                if ques.get("ans") == None or ques.get("ans") == []:
                     print('sssssssssssssss')
                     con.commit()
                     continue
@@ -206,9 +204,35 @@ PRIMARY KEY(AnswerID AUTOINCREMENT))""")
                 SELECT QuestionID FROM Questions WHERE SurveyID ={id});DELETE FROM Questions WHERE SurveyID = {id};
                 DELETE FROM Surveys WHERE SurveyID = {id}; COMMIT;""")
 
-    def statistics(self):
-        pass
-
     @classmethod
-    def statistics(cls):
-        pass
+    def statistics(cls, data):
+        with sq.connect("Surveys.db") as con:
+            d = {"id": data["id"], "name": data["name"], "count": data["count"]}
+            cur = con.cursor()
+            questions = []
+
+            for ques in data["questions"]:
+                statistics_list = []
+
+                if ques.get("type") == "qo":
+                    ques["ans"] = statistics_list
+                    questions.append(ques)
+                    continue
+
+                cur.execute(
+                    f"""SELECT ResponseCount FROM Questions WHERE QuestionID = {ques["idQues"]};""")
+
+                ResponseCount = cur.fetchone()[0]
+
+                cur.execute(f"""SELECT AnswerText, SelectedCount FROM Answers 
+                        WHERE QuestionID = {ques["idQues"]} ORDER BY AnswerOrder;""")
+
+                for ans in cur:
+                    statistics_list.append({f"{ans[0]}": round((ans[1] / ResponseCount) * 100, 2)})
+
+                ques["ans"] = statistics_list
+                questions.append(ques)
+
+            d["questions"] = questions
+
+        return d
