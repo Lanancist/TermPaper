@@ -19,6 +19,7 @@ app.add_middleware(
 @app.get("/")
 async def get_list_anc():
     Surveys.setDB()
+
     return JSONResponse(Surveys.get_list_sur())
 
 
