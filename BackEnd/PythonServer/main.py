@@ -18,6 +18,8 @@ app.add_middleware(
 
 @app.get("/")
 async def get_list_anc():
+    Surveys.setDB()
+
     return JSONResponse(Surveys.get_list_sur())
 
 
@@ -37,10 +39,16 @@ async def get_questionnaire_name(id: int):
 async def post(data=Body()):
     Surveys.upDate(data)
 
-    return {}
+    return JSONResponse(Surveys.statistics(data))
 
 
-@app.put("/addSurveys")
+@app.post("/statistics/{id}")
+def statistics_id(id: int):
+    s = Surveys.create_instance_id(id)
+    return JSONResponse(s.statistics())
+
+
+@app.post("/addSurveys")
 async def post(data=Body()):
     s = Surveys.create_instance_json(data)
     s.add_surveys_in_db()
@@ -48,6 +56,6 @@ async def post(data=Body()):
     return {}
 
 
-@app.delete("/Surveys/{id}")
+@app.delete("/admin/Surveys/{id}")
 def delete(id: int):
     Surveys.del_surv(id)

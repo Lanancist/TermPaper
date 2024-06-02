@@ -1,6 +1,4 @@
 import Question
-import json
-import os
 import sqlite3 as sq
 
 from QuestionMultiAns import QuestionMultiAns
@@ -92,14 +90,8 @@ class Surveys:
         d = {"id": self.id, "name": self.name, "count": len(self.questions), "questions": list_ques}
         return d
 
-    def addQuestion(self, question: Question):
-        self.questions.append(question)
-
-    def delQuestion(self, idQ: int):
-        del self.questions[idQ]
-
     @classmethod
-    def setBD(cls):
+    def setDB(cls):
         con = sq.connect("Surveys.db")
         cur = con.cursor()
 
@@ -160,7 +152,7 @@ PRIMARY KEY(AnswerID AUTOINCREMENT))""")
 
             for ques in data["questions"]:
 
-                if ques.get("ans") == None:
+                if ques.get("ans") == None or ques.get("ans") == []:
                     print('sssssssssssssss')
                     con.commit()
                     continue
@@ -205,3 +197,72 @@ PRIMARY KEY(AnswerID AUTOINCREMENT))""")
                 cur.executescript(f"""BEGIN TRANSACTION; DELETE FROM Answers WHERE QuestionID IN (
                 SELECT QuestionID FROM Questions WHERE SurveyID ={id});DELETE FROM Questions WHERE SurveyID = {id};
                 DELETE FROM Surveys WHERE SurveyID = {id}; COMMIT;""")
+
+    @classmethod
+    def statistics(cls, data):
+        print("qwertyuiop")
+        with sq.connect("Surveys.db") as con:
+            d = {"id": data["id"], "name": data["name"], "count": data["count"]}
+            cur = con.cursor()
+            questions = []
+
+            for ques in data["questions"]:
+                statistics_list = []
+
+                if ques.get("type") == "qo":
+                    ques["ans"] = statistics_list
+                    questions.append(ques)
+                    continue
+
+                cur.execute(
+                    f"""SELECT ResponseCount FROM Questions WHERE QuestionID = {ques["idQues"]};""")
+
+                ResponseCount = cur.fetchone()[0]
+
+                cur.execute(f"""SELECT AnswerText, SelectedCount FROM Answers 
+                        WHERE QuestionID = {ques["idQues"]} ORDER BY AnswerOrder;""")
+
+                for ans in cur:
+                    statistics_list.append({f"{ans[0]}": round((ans[1] / ResponseCount) * 100, 2)})
+
+                ques["ans"] = statistics_list
+                questions.append(ques)
+
+            d["questions"] = questions
+
+        return d
+
+    # @dispatch(self)
+
+    def statistics(self):
+        print("1234567890")
+        with sq.connect("Surveys.db") as con:
+            d = {"id": self.id, "name": self.name, "count": len(self.questions)}
+            cur = con.cursor()
+            questions = []
+
+            for ques in self.questions:
+                statistics_list = []
+
+                # if ques.get("type") == "qo":
+                #     ques["ans"] = statistics_list
+                #     questions.append(ques)
+                #     continue
+
+                cur.execute(
+                    f"""SELECT ResponseCount FROM Questions WHERE QuestionID = {ques.get_id()};""")
+
+                ResponseCount = cur.fetchone()[0]
+
+                cur.execute(f"""SELECT AnswerText, SelectedCount FROM Answers 
+                        WHERE QuestionID = {ques.get_id()} ORDER BY AnswerOrder;""")
+
+                for ans in cur:
+                    statistics_list.append({f"{ans[0]}": round((ans[1] / ResponseCount) * 100, 2)})
+
+                ques_dict = ques.toDict()
+                ques_dict["statistics"] = statistics_list
+                questions.append(ques_dict)
+
+            d["questions"] = questions
+        return d
