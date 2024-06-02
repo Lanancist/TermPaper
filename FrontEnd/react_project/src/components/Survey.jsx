@@ -4,16 +4,40 @@ import {Link, useParams} from "react-router-dom";
 
 const Survey = () => {
     const [data, setData] = useState([]);
+    const [answers, setAnswers] = useState([]);
     const {id} = useParams();
-
-    const getData = async () => {
-        const res = await axios.get(`http://127.0.0.1:8000/Surveys/${id}`);
-        setData(res.data);
-    }
 
     useEffect(() => {
         getData();
     }, []);
+
+    const getData = async () => {
+        const res = await axios.get(`http://127.0.0.1:8000/Surveys/${id}`);
+        setData(res.data);
+        let arr = [...JSON.parse(JSON.stringify(res.data)).questions]
+        arr.forEach((item) => item.ans = []);
+        setAnswers(arr);
+    }
+    // console.log(data)
+    const handleInputChange = (ques, ans) => {
+        const arrToCopy = [...answers];
+        const itemToUpdate = arrToCopy.find((item) => item.ques === ques);
+        itemToUpdate?.ans.push(ans);
+        setAnswers(arrToCopy);
+    }
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        let newObj = {
+            id: data.id,
+            name: data.name,
+            count: data.count,
+            questions: answers
+        }
+        axios.put("http://127.0.0.1:8000/answers", {
+            ...newObj
+        });
+    }
     return (
         <>
             <div className="survey">
@@ -26,17 +50,19 @@ const Survey = () => {
                                 <label key={item.ques}>
                                     {item.ques}
                                     {item.ans && (
-                                        <select name="" id="">
-                                            {item.ans.map((item) => (
-                                                <option value={item}>{item}</option>
-                                            ))}
-                                        </select>
+                                        item.ans.map((ans) => (
+                                            <p>
+                                                {item.type === "qma" ? <input type="checkbox" onChange={() => handleInputChange(item.ques, ans)} value={ans}/> : item.type === "qoa" ?
+                                        <input type="radio" onChange={() => handleInputChange(item.ques, ans)} value={ans} /> : null}
+                                                {ans}
+                                            </p>
+                                        ))
                                     )}
-                                    {!item.ans && <input type="text"/>}
+                                    {item.type === "qo" && <input type="text" onKeyDown={(e) => handleInputChange(item.ques, e.target.value)} />}
                                 </label>
                             )
                     })}
-                        <button>Отправить</button>
+                        <button onClick={handleSubmit} >Отправить</button>
                     </form>
                     <Link to="/">Назад</Link>
                 </div>
