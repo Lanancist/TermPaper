@@ -1,3 +1,5 @@
+import threading
+
 import Question
 import sqlite3 as sq
 
@@ -18,23 +20,25 @@ class Surveys:
 
     @classmethod
     def create_instance_id(cls, id: int):
+        # db_lock = threading.Lock()
+        # with db_lock:
         with sq.connect("Surveys.db") as con:
             cur = con.cursor()
 
             cur.execute(f"""SELECT Q.QuestionID, Q.QuestionType, Q.QuestionText, Q.AnswerOptionsCount, Q.SurveyID, Q.QuestionNumberInSurvey, Q.ResponseCount
-                                FROM Questions AS Q
-                                WHERE Q.SurveyID = {id}
-                                ORDER BY Q.QuestionNumberInSurvey;""")
+                                    FROM Questions AS Q
+                                    WHERE Q.SurveyID = {id}
+                                    ORDER BY Q.QuestionNumberInSurvey;""")
 
             list_question = []
             for ques in cur:
                 cur_ans = con.cursor()
 
                 cur_ans.execute(f"""SELECT q.QuestionText, a.AnswerText, a.AnswerOrder, a.SelectedCount
-                                        FROM Questions q
-                                        JOIN Answers a ON q.QuestionID = a.QuestionID
-                                        WHERE q.SurveyID = {id} AND q.QuestionNumberInSurvey = {ques[5]}
-                                        ORDER BY q.QuestionNumberInSurvey, a.AnswerOrder;""")
+                                            FROM Questions q
+                                            JOIN Answers a ON q.QuestionID = a.QuestionID
+                                            WHERE q.SurveyID = {id} AND q.QuestionNumberInSurvey = {ques[5]}
+                                            ORDER BY q.QuestionNumberInSurvey, a.AnswerOrder;""")
 
                 list_ans = []
                 for ans in cur_ans:
@@ -48,8 +52,8 @@ class Surveys:
                     list_question.append(QuestionMultiAns(ques[0], ques[2], list_ans))
 
             name = cur.execute(f"""SELECT SurveyTitle
-                                    FROM Surveys
-                                    WHERE SurveyID = {id};""").fetchone()
+                                        FROM Surveys
+                                        WHERE SurveyID = {id};""").fetchone()
 
             return cls(id, name[0], list_question)
 
@@ -199,7 +203,7 @@ PRIMARY KEY(AnswerID AUTOINCREMENT))""")
                 DELETE FROM Surveys WHERE SurveyID = {id}; COMMIT;""")
 
     @classmethod
-    def statistics(cls, data):
+    def statistics1(cls, data):
         print("qwertyuiop")
         with sq.connect("Surveys.db") as con:
             d = {"id": data["id"], "name": data["name"], "count": data["count"]}

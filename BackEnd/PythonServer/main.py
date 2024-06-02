@@ -3,7 +3,9 @@
 from fastapi import FastAPI, UploadFile, File, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from CustomThread import *
 from Surveys import *
+import threading
 
 app = FastAPI()
 
@@ -17,10 +19,20 @@ app.add_middleware(
 
 
 @app.get("/")
-async def get_list_anc():
-    Surveys.setDB()
+def get_list_anc():
+    thread = CustomThread(target=Surveys.setDB)
+    # Surveys.setDB()
+    # list_sur = Surveys.get_list_sur()
+    thread.start()
+    thread.join()
 
-    return JSONResponse(Surveys.get_list_sur())
+    thread = CustomThread(target=Surveys.get_list_sur)
+
+    thread.start()
+    thread.join()
+    list_sur = thread.local_result
+
+    return JSONResponse(list_sur)
 
 
 @app.get('/Surveys/{id}')
@@ -39,7 +51,7 @@ async def get_questionnaire_name(id: int):
 async def post(data=Body()):
     Surveys.upDate(data)
 
-    return JSONResponse(Surveys.statistics(data))
+    return JSONResponse(Surveys.statistics1(data))
 
 
 @app.post("/statistics/{id}")
