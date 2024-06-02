@@ -42,6 +42,12 @@ async def post(data=Body()):
     return JSONResponse(Surveys.statistics(data))
 
 
+@app.post("/statistics/{id}")
+def statistics_id(id: int):
+    s = Surveys.create_instance_id(id)
+    return JSONResponse(s.statistics())
+
+
 @app.post("/addSurveys")
 async def post(data=Body()):
     s = Surveys.create_instance_json(data)

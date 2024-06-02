@@ -20,3 +20,6 @@ class Question(abc.ABC):
     @abc.abstractmethod
     def add_in_db(self, SurveyID: int, QuestionNumberInSurvey: int):
         pass
+
+    def get_id(self):
+        return self.id
