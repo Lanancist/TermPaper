@@ -133,7 +133,7 @@ class Surveys:
             con.close()
 
     def add_surveys_in_db(self):  # !!!!!!!!!!!!!!!!!!!!!!!
-        print("Запуск")
+        # print("Запуск")
         db_lock = threading.Lock()
         with db_lock:
             with sq.connect("Surveys.db") as con:
@@ -167,7 +167,7 @@ class Surveys:
                 for ques in data["questions"]:
 
                     if ques.get("ans") == None or ques.get("ans") == []:
-                        print('sssssssssssssss')
+                        # print('sssssssssssssss')
                         con.commit()
                         continue
 
@@ -178,7 +178,7 @@ class Surveys:
                         if ques["type"] == 'qoa' or ques["type"] == 'qma':
 
                             cur.execute(
-                                f"""UPDATE Answers SET SelectedCount = SelectedCount + 1 WHERE AnswerOrder IN ({ans}) AND QuestionID IN ({ques["idQues"]});""")
+                                f"""UPDATE Answers SET SelectedCount = SelectedCount + 1 WHERE AnswerText IN ('{ans}') AND QuestionID IN ({ques["idQues"]});""")
 
                         elif ques["type"] == "qo":
                             ans = ans.lower()
@@ -187,11 +187,11 @@ class Surveys:
                                 f"""SELECT AnswerID, AnswerText, AnswerOrder, SelectedCount, QuestionID FROM Answers WHERE AnswerText = '{ans}' AND QuestionID = {ques["idQues"]};""")
 
                             if cur.fetchone() == None:
-                                print("Создаю")
+                                # print("Создаю")
                                 cur.execute(
                                     f"""INSERT INTO Answers (AnswerText, AnswerOrder, SelectedCount, QuestionID) VALUES ('{ans}', 1, 1, {ques["idQues"]});""")
                             else:
-                                print("Обновляю")
+                                # print("Обновляю")
                                 cur.execute(
                                     f"""UPDATE Answers SET SelectedCount = SelectedCount + 1 WHERE AnswerText IN ('{ans}') AND QuestionID IN ({ques["idQues"]});""")
 
@@ -207,7 +207,8 @@ class Surveys:
                 cur.execute(f"""SELECT COUNT(*) FROM Surveys WHERE SurveyID = {id};""")
 
                 if cur.fetchone() == (0,):
-                    print('aboba!!!!!!!!!!!!!')
+                    # print('aboba!!!!!!!!!!!!!')
+                    pass
 
                 else:
                     cur.executescript(f"""BEGIN TRANSACTION; DELETE FROM Answers WHERE QuestionID IN (
@@ -216,7 +217,7 @@ class Surveys:
 
     @classmethod
     def statistics1(cls, data):
-        print("qwertyuiop")
+        # print("qwertyuiop")
         db_lock = threading.Lock()
         with db_lock:
             with sq.connect("Surveys.db") as con:
@@ -241,7 +242,10 @@ class Surveys:
                             WHERE QuestionID = {ques["idQues"]} ORDER BY AnswerOrder;""")
 
                     for ans in cur:
-                        statistics_list.append({f"{ans[0]}": round((ans[1] / ResponseCount) * 100, 2)})
+                        if ResponseCount == 0:
+                            statistics_list.append({f"{ans[0]}": round((ans[1] / 1) * 100, 2)})  # Ошибка
+                        else:
+                            statistics_list.append({f"{ans[0]}": round((ans[1] / ResponseCount) * 100, 2)})
 
                     ques["ans"] = statistics_list
                     questions.append(ques)
@@ -253,7 +257,7 @@ class Surveys:
     # @dispatch(self)
 
     def statistics(self):
-        print("1234567890")
+        # print("1234567890")
         db_lock = threading.Lock()
         with db_lock:
             with sq.connect("Surveys.db") as con:
@@ -278,7 +282,10 @@ class Surveys:
                             WHERE QuestionID = {ques.get_id()} ORDER BY AnswerOrder;""")
 
                     for ans in cur:
-                        statistics_list.append({f"{ans[0]}": round((ans[1] / ResponseCount) * 100, 2)})
+                        if ResponseCount == 0:
+                            statistics_list.append({f"{ans[0]}": round((ans[1] / 1) * 100, 2)})
+                        else:
+                            statistics_list.append({f"{ans[0]}": round((ans[1] / ResponseCount) * 100, 2)})
 
                     ques_dict = ques.toDict()
                     ques_dict["statistics"] = statistics_list

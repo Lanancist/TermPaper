@@ -101,6 +101,7 @@ def post(data=Body()):
 
         return JSONResponse({"?": True})
     except Exception:
+        print("ATATATATATATATATA!!!!!!!!!!!!!!!!!!")
         return JSONResponse({"?": False})
 
 
