@@ -20,42 +20,42 @@ class Surveys:
 
     @classmethod
     def create_instance_id(cls, id: int):
-        # db_lock = threading.Lock()
-        # with db_lock:
-        with sq.connect("Surveys.db") as con:
-            cur = con.cursor()
+        db_lock = threading.Lock()
+        with db_lock:
+            with sq.connect("Surveys.db") as con:
+                cur = con.cursor()
 
-            cur.execute(f"""SELECT Q.QuestionID, Q.QuestionType, Q.QuestionText, Q.AnswerOptionsCount, Q.SurveyID, Q.QuestionNumberInSurvey, Q.ResponseCount
-                                    FROM Questions AS Q
-                                    WHERE Q.SurveyID = {id}
-                                    ORDER BY Q.QuestionNumberInSurvey;""")
+                cur.execute(f"""SELECT Q.QuestionID, Q.QuestionType, Q.QuestionText, Q.AnswerOptionsCount, Q.SurveyID, Q.QuestionNumberInSurvey, Q.ResponseCount
+                                        FROM Questions AS Q
+                                        WHERE Q.SurveyID = {id}
+                                        ORDER BY Q.QuestionNumberInSurvey;""")
 
-            list_question = []
-            for ques in cur:
-                cur_ans = con.cursor()
+                list_question = []
+                for ques in cur:
+                    cur_ans = con.cursor()
 
-                cur_ans.execute(f"""SELECT q.QuestionText, a.AnswerText, a.AnswerOrder, a.SelectedCount
-                                            FROM Questions q
-                                            JOIN Answers a ON q.QuestionID = a.QuestionID
-                                            WHERE q.SurveyID = {id} AND q.QuestionNumberInSurvey = {ques[5]}
-                                            ORDER BY q.QuestionNumberInSurvey, a.AnswerOrder;""")
+                    cur_ans.execute(f"""SELECT q.QuestionText, a.AnswerText, a.AnswerOrder, a.SelectedCount
+                                                FROM Questions q
+                                                JOIN Answers a ON q.QuestionID = a.QuestionID
+                                                WHERE q.SurveyID = {id} AND q.QuestionNumberInSurvey = {ques[5]}
+                                                ORDER BY q.QuestionNumberInSurvey, a.AnswerOrder;""")
 
-                list_ans = []
-                for ans in cur_ans:
-                    list_ans.append(ans[1])
+                    list_ans = []
+                    for ans in cur_ans:
+                        list_ans.append(ans[1])
 
-                if ques[1] == 0:
-                    list_question.append(QuestionOpen(ques[0], ques[2]))
-                elif ques[1] == 1:
-                    list_question.append(QuestionOneAns(ques[0], ques[2], list_ans))
-                elif ques[1] == 2:
-                    list_question.append(QuestionMultiAns(ques[0], ques[2], list_ans))
+                    if ques[1] == 0:
+                        list_question.append(QuestionOpen(ques[0], ques[2]))
+                    elif ques[1] == 1:
+                        list_question.append(QuestionOneAns(ques[0], ques[2], list_ans))
+                    elif ques[1] == 2:
+                        list_question.append(QuestionMultiAns(ques[0], ques[2], list_ans))
 
-            name = cur.execute(f"""SELECT SurveyTitle
-                                        FROM Surveys
-                                        WHERE SurveyID = {id};""").fetchone()
+                name = cur.execute(f"""SELECT SurveyTitle
+                                            FROM Surveys
+                                            WHERE SurveyID = {id};""").fetchone()
 
-            return cls(id, name[0], list_question)
+                return cls(id, name[0], list_question)
 
     @classmethod
     def create_instance_json(cls, data):
@@ -71,21 +71,24 @@ class Surveys:
 
     @classmethod
     def get_list_sur(cls):
-        with sq.connect("Surveys.db") as con:
-            cur = con.cursor()
+        db_lock = threading.Lock()
+        with db_lock:
+            with sq.connect("Surveys.db") as con:
+                cur = con.cursor()
 
-            cur.execute("""SELECT COUNT(*) FROM Surveys;""")
+                cur.execute("""SELECT COUNT(*) FROM Surveys;""")
 
-            count = cur.fetchone()[0]
+                count = cur.fetchone()[0]
 
-            cur.execute("""SELECT SurveyID, SurveyTitle, NumberOfQuestions, CompletedCount FROM Surveys;""")
+                cur.execute("""SELECT SurveyID, SurveyTitle, NumberOfQuestions, CompletedCount FROM Surveys;""")
 
-            list_surveys = []
-            for sur in cur:
-                list_surveys.append({"id": sur[0], "name": sur[1], "countQuestions": sur[2], "CompletedCount": sur[3]})
+                list_surveys = []
+                for sur in cur:
+                    list_surveys.append(
+                        {"id": sur[0], "name": sur[1], "countQuestions": sur[2], "CompletedCount": sur[3]})
 
-            d = {"countSurveys": count, "surveys": list_surveys}
-        return d
+                d = {"countSurveys": count, "surveys": list_surveys}
+            return d
 
     def formAnc(self):
         list_ques = []
@@ -96,177 +99,190 @@ class Surveys:
 
     @classmethod
     def setDB(cls):
-        con = sq.connect("Surveys.db")
-        cur = con.cursor()
-
-        cur.execute("""CREATE TABLE IF NOT EXISTS Surveys (
-SurveyID	INTEGER NOT NULL UNIQUE,
-SurveyTitle	VARCHAR(255) NOT NULL,
-NumberOfQuestions	INT NOT NULL,
-CompletedCount	INT NOT NULL DEFAULT 0,
-PRIMARY KEY(SurveyID AUTOINCREMENT))""")
-
-        cur.execute("""CREATE TABLE IF NOT EXISTS Questions (QuestionID	INTEGER NOT NULL UNIQUE,
-QuestionType	TINYINT NOT NULL CHECK(QuestionType IN (0, 1, 2)),
-QuestionText	TEXT NOT NULL,
-AnswerOptionsCount	INT,
-SurveyID	INT NOT NULL,
-QuestionNumberInSurvey	INT NOT NULL,
-ResponseCount	INT NOT NULL DEFAULT 0,
-FOREIGN KEY(SurveyID) REFERENCES Surveys(SurveyID),
-PRIMARY KEY(QuestionID AUTOINCREMENT))""")
-
-        cur.execute("""CREATE TABLE IF NOT EXISTS Answers (
-AnswerID	INTEGER NOT NULL UNIQUE,
-QuestionID	INT NOT NULL,
-AnswerText	TEXT NOT NULL,
-AnswerOrder	INT NOT NULL,
-SelectedCount	INT NOT NULL DEFAULT 0,
-FOREIGN KEY(QuestionID) REFERENCES Questions(QuestionID),
-PRIMARY KEY(AnswerID AUTOINCREMENT))""")
-
-        con.close()
-
-    def add_surveys_in_db(self):  # !!!!!!!!!!!!!!!!!!!!!!!
-        with sq.connect("Surveys.db") as con:
+        db_lock = threading.Lock()
+        with db_lock:
+            con = sq.connect("Surveys.db")
             cur = con.cursor()
 
-            cur.execute(f"""INSERT INTO Surveys (SurveyTitle, NumberOfQuestions, CompletedCount)
-                            VALUES ('{self.name}', {len(self.questions)}, 0)""")
+            cur.execute("""CREATE TABLE IF NOT EXISTS Surveys (
+    SurveyID	INTEGER NOT NULL UNIQUE,
+    SurveyTitle	VARCHAR(255) NOT NULL,
+    NumberOfQuestions	INT NOT NULL,
+    CompletedCount	INT NOT NULL DEFAULT 0,
+    PRIMARY KEY(SurveyID AUTOINCREMENT))""")
 
-            SurveysID = cur.lastrowid
+            cur.execute("""CREATE TABLE IF NOT EXISTS Questions (QuestionID	INTEGER NOT NULL UNIQUE,
+    QuestionType	TINYINT NOT NULL CHECK(QuestionType IN (0, 1, 2)),
+    QuestionText	TEXT NOT NULL,
+    AnswerOptionsCount	INT,
+    SurveyID	INT NOT NULL,
+    QuestionNumberInSurvey	INT NOT NULL,
+    ResponseCount	INT NOT NULL DEFAULT 0,
+    FOREIGN KEY(SurveyID) REFERENCES Surveys(SurveyID),
+    PRIMARY KEY(QuestionID AUTOINCREMENT))""")
 
-            if self.id == None:
-                self.id = SurveysID
+            cur.execute("""CREATE TABLE IF NOT EXISTS Answers (
+    AnswerID	INTEGER NOT NULL UNIQUE,
+    QuestionID	INT NOT NULL,
+    AnswerText	TEXT NOT NULL,
+    AnswerOrder	INT NOT NULL,
+    SelectedCount	INT NOT NULL DEFAULT 0,
+    FOREIGN KEY(QuestionID) REFERENCES Questions(QuestionID),
+    PRIMARY KEY(AnswerID AUTOINCREMENT))""")
 
-            con.commit()
+            con.close()
 
-            for index, ques in enumerate(self.questions, 1):
-                ques.add_in_db(SurveysID, index)
+    def add_surveys_in_db(self):  # !!!!!!!!!!!!!!!!!!!!!!!
+        print("Запуск")
+        db_lock = threading.Lock()
+        with db_lock:
+            with sq.connect("Surveys.db") as con:
+                cur = con.cursor()
 
-            con.commit()
+                cur.execute(f"""INSERT INTO Surveys (SurveyTitle, NumberOfQuestions, CompletedCount)
+                                VALUES ('{self.name}', {len(self.questions)}, 0)""")
+
+                SurveysID = cur.lastrowid
+
+                if self.id == None:
+                    self.id = SurveysID
+
+                con.commit()
+
+                for index, ques in enumerate(self.questions, 1):
+                    ques.add_in_db(SurveysID, index)
+
+                con.commit()
 
     @classmethod
     def upDate(cls, data: dict):  # !!!!!!!!!!!!!!!!!!!!!!!
-
-        with sq.connect("Surveys.db") as con:
-            cur = con.cursor()
-
-            cur.execute(f"""UPDATE Surveys SET CompletedCount = CompletedCount + 1 WHERE SurveyID = {data["id"]};""")
-
-            for ques in data["questions"]:
-
-                if ques.get("ans") == None or ques.get("ans") == []:
-                    print('sssssssssssssss')
-                    con.commit()
-                    continue
+        db_lock = threading.Lock()
+        with db_lock:
+            with sq.connect("Surveys.db") as con:
+                cur = con.cursor()
 
                 cur.execute(
-                    f"""UPDATE Questions SET ResponseCount = ResponseCount + 1 WHERE QuestionID IN ({ques["idQues"]});""")
+                    f"""UPDATE Surveys SET CompletedCount = CompletedCount + 1 WHERE SurveyID = {data["id"]};""")
 
-                for ans in ques["ans"]:
-                    if ques["type"] == 'qoa' or ques["type"] == 'qma':
+                for ques in data["questions"]:
 
-                        cur.execute(
-                            f"""UPDATE Answers SET SelectedCount = SelectedCount + 1 WHERE AnswerOrder IN ({ans}) AND QuestionID IN ({ques["idQues"]});""")
+                    if ques.get("ans") == None or ques.get("ans") == []:
+                        print('sssssssssssssss')
+                        con.commit()
+                        continue
 
-                    elif ques["type"] == "qo":
-                        ans = ans.lower()
+                    cur.execute(
+                        f"""UPDATE Questions SET ResponseCount = ResponseCount + 1 WHERE QuestionID IN ({ques["idQues"]});""")
 
-                        cur.execute(
-                            f"""SELECT AnswerID, AnswerText, AnswerOrder, SelectedCount, QuestionID FROM Answers WHERE AnswerText = '{ans}' AND QuestionID = {ques["idQues"]};""")
+                    for ans in ques["ans"]:
+                        if ques["type"] == 'qoa' or ques["type"] == 'qma':
 
-                        if cur.fetchone() == None:
-                            print("Создаю")
                             cur.execute(
-                                f"""INSERT INTO Answers (AnswerText, AnswerOrder, SelectedCount, QuestionID) VALUES ('{ans}', 1, 1, {ques["idQues"]});""")
-                        else:
-                            print("Обновляю")
-                            cur.execute(
-                                f"""UPDATE Answers SET SelectedCount = SelectedCount + 1 WHERE AnswerText IN ('{ans}') AND QuestionID IN ({ques["idQues"]});""")
+                                f"""UPDATE Answers SET SelectedCount = SelectedCount + 1 WHERE AnswerOrder IN ({ans}) AND QuestionID IN ({ques["idQues"]});""")
 
-            con.commit()
+                        elif ques["type"] == "qo":
+                            ans = ans.lower()
+
+                            cur.execute(
+                                f"""SELECT AnswerID, AnswerText, AnswerOrder, SelectedCount, QuestionID FROM Answers WHERE AnswerText = '{ans}' AND QuestionID = {ques["idQues"]};""")
+
+                            if cur.fetchone() == None:
+                                print("Создаю")
+                                cur.execute(
+                                    f"""INSERT INTO Answers (AnswerText, AnswerOrder, SelectedCount, QuestionID) VALUES ('{ans}', 1, 1, {ques["idQues"]});""")
+                            else:
+                                print("Обновляю")
+                                cur.execute(
+                                    f"""UPDATE Answers SET SelectedCount = SelectedCount + 1 WHERE AnswerText IN ('{ans}') AND QuestionID IN ({ques["idQues"]});""")
+
+                con.commit()
 
     @classmethod
     def del_surv(cls, id: int):
-        with sq.connect("Surveys.db") as con:
-            cur = con.cursor()
+        db_lock = threading.Lock()
+        with db_lock:
+            with sq.connect("Surveys.db") as con:
+                cur = con.cursor()
 
-            cur.execute(f"""SELECT COUNT(*) FROM Surveys WHERE SurveyID = {id};""")
+                cur.execute(f"""SELECT COUNT(*) FROM Surveys WHERE SurveyID = {id};""")
 
-            if cur.fetchone() == (0,):
-                print('aboba!!!!!!!!!!!!!')
+                if cur.fetchone() == (0,):
+                    print('aboba!!!!!!!!!!!!!')
 
-            else:
-                cur.executescript(f"""BEGIN TRANSACTION; DELETE FROM Answers WHERE QuestionID IN (
-                SELECT QuestionID FROM Questions WHERE SurveyID ={id});DELETE FROM Questions WHERE SurveyID = {id};
-                DELETE FROM Surveys WHERE SurveyID = {id}; COMMIT;""")
+                else:
+                    cur.executescript(f"""BEGIN TRANSACTION; DELETE FROM Answers WHERE QuestionID IN (
+                    SELECT QuestionID FROM Questions WHERE SurveyID ={id});DELETE FROM Questions WHERE SurveyID = {id};
+                    DELETE FROM Surveys WHERE SurveyID = {id}; COMMIT;""")
 
     @classmethod
     def statistics1(cls, data):
         print("qwertyuiop")
-        with sq.connect("Surveys.db") as con:
-            d = {"id": data["id"], "name": data["name"], "count": data["count"]}
-            cur = con.cursor()
-            questions = []
+        db_lock = threading.Lock()
+        with db_lock:
+            with sq.connect("Surveys.db") as con:
+                d = {"id": data["id"], "name": data["name"], "count": data["count"]}
+                cur = con.cursor()
+                questions = []
 
-            for ques in data["questions"]:
-                statistics_list = []
+                for ques in data["questions"]:
+                    statistics_list = []
 
-                if ques.get("type") == "qo":
+                    if ques.get("type") == "qo":
+                        ques["ans"] = statistics_list
+                        questions.append(ques)
+                        continue
+
+                    cur.execute(
+                        f"""SELECT ResponseCount FROM Questions WHERE QuestionID = {ques["idQues"]};""")
+
+                    ResponseCount = cur.fetchone()[0]
+
+                    cur.execute(f"""SELECT AnswerText, SelectedCount FROM Answers 
+                            WHERE QuestionID = {ques["idQues"]} ORDER BY AnswerOrder;""")
+
+                    for ans in cur:
+                        statistics_list.append({f"{ans[0]}": round((ans[1] / ResponseCount) * 100, 2)})
+
                     ques["ans"] = statistics_list
                     questions.append(ques)
-                    continue
 
-                cur.execute(
-                    f"""SELECT ResponseCount FROM Questions WHERE QuestionID = {ques["idQues"]};""")
+                d["questions"] = questions
 
-                ResponseCount = cur.fetchone()[0]
-
-                cur.execute(f"""SELECT AnswerText, SelectedCount FROM Answers 
-                        WHERE QuestionID = {ques["idQues"]} ORDER BY AnswerOrder;""")
-
-                for ans in cur:
-                    statistics_list.append({f"{ans[0]}": round((ans[1] / ResponseCount) * 100, 2)})
-
-                ques["ans"] = statistics_list
-                questions.append(ques)
-
-            d["questions"] = questions
-
-        return d
+            return d
 
     # @dispatch(self)
 
     def statistics(self):
         print("1234567890")
-        with sq.connect("Surveys.db") as con:
-            d = {"id": self.id, "name": self.name, "count": len(self.questions)}
-            cur = con.cursor()
-            questions = []
+        db_lock = threading.Lock()
+        with db_lock:
+            with sq.connect("Surveys.db") as con:
+                d = {"id": self.id, "name": self.name, "count": len(self.questions)}
+                cur = con.cursor()
+                questions = []
 
-            for ques in self.questions:
-                statistics_list = []
+                for ques in self.questions:
+                    statistics_list = []
 
-                # if ques.get("type") == "qo":
-                #     ques["ans"] = statistics_list
-                #     questions.append(ques)
-                #     continue
+                    # if ques.get("type") == "qo":
+                    #     ques["ans"] = statistics_list
+                    #     questions.append(ques)
+                    #     continue
 
-                cur.execute(
-                    f"""SELECT ResponseCount FROM Questions WHERE QuestionID = {ques.get_id()};""")
+                    cur.execute(
+                        f"""SELECT ResponseCount FROM Questions WHERE QuestionID = {ques.get_id()};""")
 
-                ResponseCount = cur.fetchone()[0]
+                    ResponseCount = cur.fetchone()[0]
 
-                cur.execute(f"""SELECT AnswerText, SelectedCount FROM Answers 
-                        WHERE QuestionID = {ques.get_id()} ORDER BY AnswerOrder;""")
+                    cur.execute(f"""SELECT AnswerText, SelectedCount FROM Answers 
+                            WHERE QuestionID = {ques.get_id()} ORDER BY AnswerOrder;""")
 
-                for ans in cur:
-                    statistics_list.append({f"{ans[0]}": round((ans[1] / ResponseCount) * 100, 2)})
+                    for ans in cur:
+                        statistics_list.append({f"{ans[0]}": round((ans[1] / ResponseCount) * 100, 2)})
 
-                ques_dict = ques.toDict()
-                ques_dict["statistics"] = statistics_list
-                questions.append(ques_dict)
+                    ques_dict = ques.toDict()
+                    ques_dict["statistics"] = statistics_list
+                    questions.append(ques_dict)
 
-            d["questions"] = questions
-        return d
+                d["questions"] = questions
+            return d

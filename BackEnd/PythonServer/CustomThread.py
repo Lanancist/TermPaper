@@ -5,6 +5,7 @@ class CustomThread(threading.Thread):
     """
     Класс для создания потока, который возвращает значение после завершения.
     """
+    local_result = None
 
     def __init__(self, group=None, target=None, name=None, args=(), kwargs={}, *, daemon=None):
         def new_target(*a, **kwa):

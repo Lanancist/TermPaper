@@ -5,7 +5,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from CustomThread import *
 from Surveys import *
-import threading
 
 app = FastAPI()
 
@@ -36,9 +35,18 @@ def get_list_anc():
 
 
 @app.get('/Surveys/{id}')
-async def get_questionnaire_name(id: int):
-    s = Surveys.create_instance_id(id)
-    return JSONResponse(s.formAnc())
+def get_questionnaire_name(id: int):
+    thread = CustomThread(target=Surveys.create_instance_id, args=(id,))
+    thread.start()
+    thread.join()
+    s = thread.local_result
+
+    thread = CustomThread(target=s.formAnc)
+    thread.start()
+    thread.join()
+
+    # s = Surveys.create_instance_id(id)
+    return JSONResponse(thread.local_result)
 
 
 # @app.put("/upload")
@@ -48,26 +56,58 @@ async def get_questionnaire_name(id: int):
 
 
 @app.put("/answers")
-async def post(data=Body()):
-    Surveys.upDate(data)
+def post(data=Body()):
+    thread = CustomThread(target=Surveys.upDate, args=(data,))
+    thread.start()
+    thread.join()
 
-    return JSONResponse(Surveys.statistics1(data))
+    thread = CustomThread(target=Surveys.statistics1, args=(data,))
+    thread.start()
+    thread.join()
+
+    # Surveys.upDate(data)
+
+    return JSONResponse(thread.local_result)
 
 
 @app.post("/statistics/{id}")
 def statistics_id(id: int):
-    s = Surveys.create_instance_id(id)
-    return JSONResponse(s.statistics())
+    thread = CustomThread(target=Surveys.create_instance_id, args=(id,))
+    thread.start()
+    thread.join()
+    s = thread.local_result
+    # s = Surveys.create_instance_id(id)
+    thread = CustomThread(target=s.statistics)
+    thread.start()
+    thread.join()
+    return JSONResponse(thread.local_result)
 
 
 @app.post("/addSurveys")
-async def post(data=Body()):
-    s = Surveys.create_instance_json(data)
-    s.add_surveys_in_db()
+def post(data=Body()):
+    try:
+        thread = CustomThread(target=Surveys.create_instance_json, args=(data,))
+        thread.start()
+        thread.join()
 
-    return {}
+        s = thread.local_result
+
+        thread = CustomThread(target=s.add_surveys_in_db)
+        thread.start()
+        thread.join()
+
+        # s = Surveys.create_instance_json(data)
+        # s.add_surveys_in_db()
+
+        return JSONResponse({"?": True})
+    except Exception:
+        return JSONResponse({"?": False})
 
 
 @app.delete("/admin/Surveys/{id}")
 def delete(id: int):
-    Surveys.del_surv(id)
+    thread = CustomThread(target=Surveys.del_surv, args=(id,))
+    thread.start()
+    thread.join()
+    # Surveys.del_surv(id)
+    return {}
