@@ -1,5 +1,7 @@
 import threading
+from typing import overload
 
+import MyException
 import Question
 import sqlite3 as sq
 
@@ -30,6 +32,9 @@ class Surveys:
                                         WHERE Q.SurveyID = {id}
                                         ORDER BY Q.QuestionNumberInSurvey;""")
 
+                # if cur.fetchall() == []:
+                #     raise MyException.CreateSurveysException(f"Анкета id: {id} в базе не содержит вопросов")
+
                 list_question = []
                 for ques in cur:
                     cur_ans = con.cursor()
@@ -40,6 +45,9 @@ class Surveys:
                                                 WHERE q.SurveyID = {id} AND q.QuestionNumberInSurvey = {ques[5]}
                                                 ORDER BY q.QuestionNumberInSurvey, a.AnswerOrder;""")
 
+                    # if cur_ans.fetchall() == []:
+                    #     raise MyException.CreateSurveysException("Анкета в базе не содержит ответов")
+                    # print(cur_ans.fetchall())
                     list_ans = []
                     for ans in cur_ans:
                         list_ans.append(ans[1])
@@ -216,6 +224,7 @@ class Surveys:
                     DELETE FROM Surveys WHERE SurveyID = {id}; COMMIT;""")
 
     @classmethod
+    # @overload
     def statistics1(cls, data):
         # print("qwertyuiop")
         db_lock = threading.Lock()
@@ -255,7 +264,7 @@ class Surveys:
             return d
 
     # @dispatch(self)
-
+    # @overload
     def statistics(self):
         # print("1234567890")
         db_lock = threading.Lock()

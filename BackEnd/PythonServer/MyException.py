@@ -3,6 +3,6 @@ class CreateQuestionException(Exception):
     pass
 
 
-class NotFileException(Exception):
-    """Ошибка открытия файла с анкетой"""
+class CreateSurveysException(Exception):
+    """Ошибка формирования анкеты"""
     pass

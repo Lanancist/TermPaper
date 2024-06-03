@@ -3,6 +3,8 @@
 from fastapi import FastAPI, UploadFile, File, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+
+import MyException
 from CustomThread import *
 from Surveys import *
 
@@ -19,19 +21,22 @@ app.add_middleware(
 
 @app.get("/")
 def get_list_anc():
-    thread = CustomThread(target=Surveys.setDB)
-    # Surveys.setDB()
-    # list_sur = Surveys.get_list_sur()
-    thread.start()
-    thread.join()
+    try:
+        thread = CustomThread(target=Surveys.setDB)
+        # Surveys.setDB()
+        # list_sur = Surveys.get_list_sur()
+        thread.start()
+        thread.join()
 
-    thread = CustomThread(target=Surveys.get_list_sur)
+        thread = CustomThread(target=Surveys.get_list_sur)
 
-    thread.start()
-    thread.join()
-    list_sur = thread.local_result
+        thread.start()
+        thread.join()
+        list_sur = thread.local_result
 
-    return JSONResponse(list_sur)
+        return JSONResponse(list_sur)
+    except Exception:
+        return {"status": 500, "data": "Ошибка базы данных"}
 
 
 @app.get('/Surveys/{id}')
@@ -44,9 +49,14 @@ def get_questionnaire_name(id: int):
     thread = CustomThread(target=s.formAnc)
     thread.start()
     thread.join()
+    #
+    # print(thread.local_result)
 
     # s = Surveys.create_instance_id(id)
     return JSONResponse(thread.local_result)
+    # return JSONResponse(s.formAnc())
+    # print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    # return {"status": 404, "data": e}
 
 
 # @app.put("/upload")
@@ -70,7 +80,7 @@ def post(data=Body()):
     return JSONResponse(thread.local_result)
 
 
-@app.post("/statistics/{id}")
+@app.put("/statistics/{id}")
 def statistics_id(id: int):
     thread = CustomThread(target=Surveys.create_instance_id, args=(id,))
     thread.start()

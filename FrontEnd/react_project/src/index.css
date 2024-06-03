@@ -22,16 +22,16 @@ a{
   cursor: pointer;
 }
 
-label{
-  display: flex;
-  flex-direction: column;
-  margin-top: 10px;
-  max-width: 400px;
+.ansvers{
+display: flex;
+flex-direction: column;
+margin-top: 25px;
 }
 
 label > select, input{
   max-width: 200px;
   margin-top: 5px;
+  margin-right: 10px;
 }
 button{
   margin-top: 10px;

@@ -5,6 +5,7 @@ import {Link, useParams} from "react-router-dom";
 const Survey = () => {
     const [data, setData] = useState([]);
     const [answers, setAnswers] = useState([]);
+    const [statistics, setStatistics] = useState([]);
     const {id} = useParams();
 
     useEffect(() => {
@@ -36,8 +37,11 @@ const Survey = () => {
         }
         axios.put("http://127.0.0.1:8000/answers", {
             ...newObj
-        });
+        }).then((res)=> {
+        setStatistics(res.data)
+        })
     }
+    console.log(statistics)
     return (
         <>
             <div className="survey">
@@ -45,21 +49,22 @@ const Survey = () => {
                     <h1>{data.name}</h1>
                     <form>
 
-                    {data.questions && data.questions.map((item) => {
+                    {data.questions && data.questions.map((item, quesIndex) => {
                             return (
-                                <label key={item.ques}>
+                                <div className="ansvers" key={item.ques}>
                                     {item.ques}
                                     {item.ans && (
-                                        item.ans.map((ans) => (
-                                            <p>
+                                        item.ans.map((ans, index) => (
+                                            <label>
                                                 {item.type === "qma" ? <input type="checkbox" onChange={() => handleInputChange(item.ques, ans)} value={ans}/> : item.type === "qoa" ?
-                                        <input type="radio" onChange={() => handleInputChange(item.ques, ans)} value={ans} /> : null}
+                                        <input type="radio" name={item.ques} onChange={() => handleInputChange(item.ques, ans)} value={ans} /> : null}
                                                 {ans}
-                                            </p>
+                                                {statistics?.questions[quesIndex]?.ans[index]}
+                                            </label>
                                         ))
                                     )}
                                     {item.type === "qo" && <input type="text" onKeyDown={(e) => handleInputChange(item.ques, e.target.value)} />}
-                                </label>
+                                </div>
                             )
                     })}
                         <button onClick={handleSubmit} >Отправить</button>

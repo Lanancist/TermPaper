@@ -11,7 +11,7 @@ class QuestionOneAns(Question.Question):
         super().__init__(id, ques)
         self.__ans = ans
         if len(self.__ans) == 0:
-            raise MyException.CreateQuestionException("Колличество вопросов должно быть больше нуля")
+            raise MyException.CreateQuestionException("Колличество ответов должно быть больше нуля")
 
     def create_instance(cls, data: dict):
         return cls(None, data["ques"], data["ans"])
