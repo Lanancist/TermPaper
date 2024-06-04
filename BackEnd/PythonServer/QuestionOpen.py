@@ -20,9 +20,9 @@ class QuestionOpen(Question.Question):
             cur = con.cursor()
 
             cur.execute(f"""INSERT INTO Questions (QuestionType, QuestionText, AnswerOptionsCount, SurveyID, QuestionNumberInSurvey, ResponseCount)
-            VALUES (0, '{self.ques}', NULL, {SurveyID}, {QuestionNumberInSurvey}, 0);""")
+            VALUES (0, '{self._ques}', NULL, {SurveyID}, {QuestionNumberInSurvey}, 0);""")
 
-            if self.id == None:
-                self.id = cur.lastrowid
+            if self._id == None:
+                self._id = cur.lastrowid
 
             con.commit()

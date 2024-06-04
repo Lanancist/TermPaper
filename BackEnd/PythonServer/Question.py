@@ -22,4 +22,8 @@ class Question(abc.ABC):
         pass
 
     def get_id(self):
-        return self.id
+        return self._id
+
+    @abc.abstractmethod
+    def create_instance(cls, data: dict) -> object:
+        pass
