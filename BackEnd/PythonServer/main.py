@@ -78,7 +78,7 @@ def post(data=Body()):
     return JSONResponse(thread.local_result)
 
 
-@app.post("/statistics/{id}")
+@app.put("/statistics/{id}")
 def statistics_id(id: int):
     try:
         thread = CustomThread(target=Survey.create_instance_id, args=(id,))
