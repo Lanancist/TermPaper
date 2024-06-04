@@ -43,7 +43,7 @@ const Survey = () => {
         setStatistics(res.data);
       });
   };
-  console.log(statistics);
+  console.log(Array(statistics));
   return (
     <>
       <div className="survey">
@@ -53,10 +53,12 @@ const Survey = () => {
             {data.questions &&
               data.questions.map((item, quesIndex) => {
                 return (
-                  <div className="ansvers" key={item.ques}>
+                  <div className="ansvers" key={quesIndex}>
                     {item.ques}
                     {item.ans &&
-                      item.ans.map((ans, index) => (
+                      item.ans.map((ans, index) =>{ 
+                        const ratingOfAnswers = statistics.questions !== undefined ? statistics.questions[quesIndex].ans[index][ans] : 0;
+                        return (
                         <label>
                           {item.type === "qma" ? (
                             <input
@@ -72,10 +74,17 @@ const Survey = () => {
                               value={ans}
                             />
                           ) : null}
+                          <span>
                           {ans}
-                          {/* {statistics?.questions[quesIndex]?.ans[index]} */}
+                          </span>
+                          <div>
+                            {!Array.isArray(statistics) ? <progress value={ratingOfAnswers} max="100">{ratingOfAnswers}%</progress> : null}
+                          <span>
+                          {!Array.isArray(statistics) && ratingOfAnswers + "%"}
+                          </span>
+                          </div>
                         </label>
-                      ))}
+                      )})}
                     {item.type === "qo" && (
                       <input
                         type="text"

@@ -43,3 +43,7 @@ button{
 p > input {
   margin-right: 10px;
 }
+
+label > div > span{
+  margin-left: 15px;
+}
