@@ -4,14 +4,14 @@ import MyException
 
 
 class Question(abc.ABC):
-    __ques: str
-    __id: int
+    _ques: str
+    _id: int
 
     def __init__(self, id: int, ques: str):
         if ques == '':
             raise MyException.CreateQuestionException('Вопрос не может быть пустым')
-        self.__ques = ques
-        self.__id = id
+        self._ques = ques
+        self._id = id
 
     @abc.abstractmethod
     def toDict(self) -> dict:

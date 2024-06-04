@@ -13,7 +13,7 @@ class QuestionOpen(Question.Question):
         return cls(None, data["ques"])
 
     def toDict(self):
-        return {"idQues": self.id, "type": self.__type, "ques": self.ques}
+        return {"idQues": self._id, "type": self.__type, "ques": self._ques}
 
     def add_in_db(self, SurveyID: int, QuestionNumberInSurvey: int):
         with sq.connect("Surveys.db") as con:

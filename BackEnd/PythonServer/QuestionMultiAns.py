@@ -18,7 +18,7 @@ class QuestionMultiAns(Question.Question):
         return cls(None, data["ques"], data["ans"])
 
     def toDict(self) -> dict:
-        return {"idQues": self.id, "type": self.__type, "ques": self.ques, "countAns": len(self.__ans),
+        return {"idQues": self._id, "type": self.__type, "ques": self._ques, "countAns": len(self.__ans),
                 "ans": self.__ans}
 
     def add_in_db(self, SurveyID: int, QuestionNumberInSurvey: int):
