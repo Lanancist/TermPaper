@@ -10,18 +10,20 @@ from QuestionOneAns import QuestionOneAns
 from QuestionOpen import QuestionOpen
 
 
-class Surveys:
-    id: int
-    questions: list[Question]
-    name: str
+class Survey:
+    _id: int
+    _questions: list[Question]
+    _name: str
 
-    def __init__(self, id, name: str = "NoName", questions: list[Question] = []):
-        self.id = id
-        self.name = name
-        self.questions = questions
+    def __init__(self, id, name: str = "NoName", questions: list[Question] = []) -> object:
+        self._id = id
+        self._name = name
+        if len(questions) == 0:
+            raise MyException.CreateSurveyException("Анкета не может быть пустой")
+        self._questions = questions
 
     @classmethod
-    def create_instance_id(cls, id: int):
+    def create_instance_id(cls, id: int) -> object:
         db_lock = threading.Lock()
         with db_lock:
             with sq.connect("Surveys.db") as con:
@@ -31,9 +33,6 @@ class Surveys:
                                         FROM Questions AS Q
                                         WHERE Q.SurveyID = {id}
                                         ORDER BY Q.QuestionNumberInSurvey;""")
-
-                # if cur.fetchall() == []:
-                #     raise MyException.CreateSurveysException(f"Анкета id: {id} в базе не содержит вопросов")
 
                 list_question = []
                 for ques in cur:
@@ -63,10 +62,13 @@ class Surveys:
                                             FROM Surveys
                                             WHERE SurveyID = {id};""").fetchone()
 
+                if name == None:
+                    raise MyException.CreateSurveyException(f"Анкеты c id: {id} не существует")
+
                 return cls(id, name[0], list_question)
 
     @classmethod
-    def create_instance_json(cls, data):
+    def create_instance_json(cls, data: dict) -> object:
         list_question = []
         for i in range(data["count"]):
             if data["questions"][i]["type"] == "qo":
@@ -78,7 +80,7 @@ class Surveys:
         return cls(None, data["name"], list_question)
 
     @classmethod
-    def get_list_sur(cls):
+    def get_list_sur(cls) -> dict:
         db_lock = threading.Lock()
         with db_lock:
             with sq.connect("Surveys.db") as con:
@@ -98,11 +100,11 @@ class Surveys:
                 d = {"countSurveys": count, "surveys": list_surveys}
             return d
 
-    def formAnc(self):
+    def formAnc(self) -> dict:
         list_ques = []
-        for i in range(len(self.questions)):
-            list_ques.append(self.questions[i].toDict())
-        d = {"id": self.id, "name": self.name, "count": len(self.questions), "questions": list_ques}
+        for i in range(len(self._questions)):
+            list_ques.append(self._questions[i].toDict())
+        d = {"id": self._id, "name": self._name, "count": len(self._questions), "questions": list_ques}
         return d
 
     @classmethod
@@ -148,16 +150,16 @@ class Surveys:
                 cur = con.cursor()
 
                 cur.execute(f"""INSERT INTO Surveys (SurveyTitle, NumberOfQuestions, CompletedCount)
-                                VALUES ('{self.name}', {len(self.questions)}, 0)""")
+                                VALUES ('{self._name}', {len(self._questions)}, 0)""")
 
                 SurveysID = cur.lastrowid
 
-                if self.id == None:
-                    self.id = SurveysID
+                if self._id == None:
+                    self._id = SurveysID
 
                 con.commit()
 
-                for index, ques in enumerate(self.questions, 1):
+                for index, ques in enumerate(self._questions, 1):
                     ques.add_in_db(SurveysID, index)
 
                 con.commit()
@@ -224,8 +226,7 @@ class Surveys:
                     DELETE FROM Surveys WHERE SurveyID = {id}; COMMIT;""")
 
     @classmethod
-    # @overload
-    def statistics1(cls, data):
+    def statistics_all(cls, data: dict) -> dict:
         # print("qwertyuiop")
         db_lock = threading.Lock()
         with db_lock:
@@ -252,7 +253,7 @@ class Surveys:
 
                     for ans in cur:
                         if ResponseCount == 0:
-                            statistics_list.append({f"{ans[0]}": round((ans[1] / 1) * 100, 2)})  # Ошибка
+                            raise MyException.CreateQuestionException("Ошибка обработки ResponseCount")  # Ошибка
                         else:
                             statistics_list.append({f"{ans[0]}": round((ans[1] / ResponseCount) * 100, 2)})
 
@@ -263,24 +264,16 @@ class Surveys:
 
             return d
 
-    # @dispatch(self)
-    # @overload
-    def statistics(self):
-        # print("1234567890")
+    def statistics(self) -> dict:
         db_lock = threading.Lock()
         with db_lock:
             with sq.connect("Surveys.db") as con:
-                d = {"id": self.id, "name": self.name, "count": len(self.questions)}
+                d = {"id": self._id, "name": self._name, "count": len(self._questions)}
                 cur = con.cursor()
                 questions = []
 
-                for ques in self.questions:
+                for ques in self._questions:
                     statistics_list = []
-
-                    # if ques.get("type") == "qo":
-                    #     ques["ans"] = statistics_list
-                    #     questions.append(ques)
-                    #     continue
 
                     cur.execute(
                         f"""SELECT ResponseCount FROM Questions WHERE QuestionID = {ques.get_id()};""")
@@ -302,3 +295,25 @@ class Surveys:
 
                 d["questions"] = questions
             return d
+
+    @classmethod
+    def statistics_top(cls, top: int):
+        if top <= 0:
+            raise MyException.CreateSurveyException
+        db_lock = threading.Lock()
+        with db_lock:
+            with sq.connect("Surveys.db") as con:
+                d = {"count": top}
+                cur = con.cursor()
+
+                cur.execute(f"""SELECT SurveyID, SurveyTitle, NumberOfQuestions, CompletedCount
+                            FROM Surveys
+                            ORDER BY CompletedCount DESC
+                            LIMIT {top};""")
+                list_sur = []
+                for sur in cur:
+                    list_sur.append({"id": sur[0], "name": sur[1], "countQues": sur[2], "completedCount": sur[3]})
+
+                d["survey"] = list_sur
+
+                return d
