@@ -18,4 +18,9 @@ grid-template-areas:
   margin: 0 auto;
 }
 
+.content-inner{
+  display: flex;
+  justify-content: space-between;
+}
+
 

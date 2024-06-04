@@ -1,15 +1,18 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { Link, useParams } from "react-router-dom";
+import Questions from "./questions/Questions";
 
-const Survey = () => {
+const Survey = ({isStatistic}) => {
   const [data, setData] = useState([]);
   const [answers, setAnswers] = useState([]);
   const [statistics, setStatistics] = useState([]);
+  const [activeBtn, setActiveBtn] = useState(true);
   const { id } = useParams();
 
   useEffect(() => {
     getData();
+    if(isStatistic) getStatistics();
   }, []);
 
   const getData = async () => {
@@ -19,7 +22,13 @@ const Survey = () => {
     arr.forEach((item) => (item.ans = []));
     setAnswers(arr);
   };
-  // console.log(data)
+
+  const getStatistics = async () => {
+     const res = await axios.put(`http://127.0.0.1:8000/statistics/${id}`);
+     console.log(res.data);
+    // setStatistics(res.data);
+  }
+getStatistics()
   const handleInputChange = (ques, ans) => {
     const arrToCopy = [...answers];
     const itemToUpdate = arrToCopy.find((item) => item.ques === ques);
@@ -40,10 +49,11 @@ const Survey = () => {
         ...newObj,
       })
       .then((res) => {
+        console.log(res.data, 'res');
         setStatistics(res.data);
+        setActiveBtn(false);
       });
   };
-  console.log(Array(statistics));
   return (
     <>
       <div className="survey">
@@ -54,49 +64,19 @@ const Survey = () => {
               data.questions.map((item, quesIndex) => {
                 return (
                   <div className="ansvers" key={quesIndex}>
-                    {item.ques}
-                    {item.ans &&
-                      item.ans.map((ans, index) =>{ 
-                        const ratingOfAnswers = statistics.questions !== undefined ? statistics.questions[quesIndex].ans[index][ans] : 0;
-                        return (
-                        <label>
-                          {item.type === "qma" ? (
-                            <input
-                              type="checkbox"
-                              onChange={() => handleInputChange(item.ques, ans)}
-                              value={ans}
-                            />
-                          ) : item.type === "qoa" ? (
-                            <input
-                              type="radio"
-                              name={item.ques}
-                              onChange={() => handleInputChange(item.ques, ans)}
-                              value={ans}
-                            />
-                          ) : null}
-                          <span>
-                          {ans}
-                          </span>
-                          <div>
-                            {!Array.isArray(statistics) ? <progress value={ratingOfAnswers} max="100">{ratingOfAnswers}%</progress> : null}
-                          <span>
-                          {!Array.isArray(statistics) && ratingOfAnswers + "%"}
-                          </span>
-                          </div>
-                        </label>
-                      )})}
+            <Questions question={item} statistics={statistics} quesIndex={quesIndex} handleInputChange={handleInputChange} />
                     {item.type === "qo" && (
-                      <input
-                        type="text"
-                        onKeyDown={(e) =>
-                          handleInputChange(item.ques, e.target.value)
-                        }
-                      />
-                    )}
+                       <input
+                         type="text"
+                         onKeyDown={(e) =>
+                           handleInputChange(item.ques, e.target.value)
+                         }
+                       />
+                    )} 
                   </div>
                 );
               })}
-            <button onClick={handleSubmit}>Отправить</button>
+              {activeBtn && <button onClick={handleSubmit}>Отправить</button>}
           </form>
           <Link to="/">Назад</Link>
         </div>
