@@ -13,16 +13,16 @@ class QuestionOpen(Question.Question):
         return cls(None, data["ques"])
 
     def toDict(self):
-        return {"idQues": self.id, "type": self.__type, "ques": self.ques}
+        return {"idQues": self._id, "type": self.__type, "ques": self._ques}
 
     def add_in_db(self, SurveyID: int, QuestionNumberInSurvey: int):
         with sq.connect("Surveys.db") as con:
             cur = con.cursor()
 
             cur.execute(f"""INSERT INTO Questions (QuestionType, QuestionText, AnswerOptionsCount, SurveyID, QuestionNumberInSurvey, ResponseCount)
-            VALUES (0, '{self.ques}', NULL, {SurveyID}, {QuestionNumberInSurvey}, 0);""")
+            VALUES (0, '{self._ques}', NULL, {SurveyID}, {QuestionNumberInSurvey}, 0);""")
 
-            if self.id == None:
-                self.id = cur.lastrowid
+            if self._id == None:
+                self._id = cur.lastrowid
 
             con.commit()
