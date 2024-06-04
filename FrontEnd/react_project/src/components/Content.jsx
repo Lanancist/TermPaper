@@ -9,8 +9,6 @@ const Content = () => {
             setContentData(data.data);
     }
 
-    console.log(contentData);
-
     useEffect(() => {
         getData();
     }, [])
@@ -22,13 +20,26 @@ const Content = () => {
                     <h3 className="content-title">
                         Контент
                     </h3>
-                    <div>Общее количество анкет: {contentData.countSurveys}</div>
+                    <div className="content-inner">
+                        <div className="surveys">
+                            <div>Общее количество анкет: {contentData.countSurveys}</div>
                     {contentData.surveys?.map((item) => (
                         <div style={{ display: "flex", justifyContent: "space-between" }}>
                         <Link key={item.id} to={`/surveys/${item.id}`}>{item.name}</Link>
                             <div>Количество вопросов: {item.countQuestions}</div>
                         </div>
                     ))}
+                        </div>
+                        <div className="statistics">
+                                <div>Общее количество анкет: {contentData.countSurveys}</div>
+                    {contentData.surveys?.map((item) => (
+                        <div style={{ display: "flex", justifyContent: "space-between" }}>
+                        <Link key={item.id} to={`/surveys/${item.id}`}>{item.name}</Link>
+                            <div>Количество вопросов: {item.countQuestions}</div>
+                        </div>
+                    ))}
+                        </div>
+                    </div>
                 </div>
             </div>
         </>

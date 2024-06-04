@@ -7,23 +7,14 @@ import Survey from "./components/Survey";
 
 
 function App() {
-  // const getListAnc = async () => {
-  //   const data = await axios.get(" http://127.0.0.1:8000/");
-  //   console.log(data);
-  // };
-  // getListAnc();
   return (
     <div className="app-weapper">
       <Header />
-        {/*<Content />*/}
         <Routes>
             <Route path="/" element={<Content/>} />
             <Route path="/surveys/:id" element={<Survey/>} />
+            <Route path="/statistic/:id" element={<Survey />} />
         </Routes>
-      {/*<div className="container">*/}
-      {/*  /!*<NavBar />*!/*/}
-      {/*  /!*<Content />*!/*/}
-      {/*</div>*/}
     </div>
   );
 }
