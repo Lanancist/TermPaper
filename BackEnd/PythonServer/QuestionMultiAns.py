@@ -13,10 +13,11 @@ class QuestionMultiAns(Question.Question):
         if len(self.__ans) == 0:
             raise MyException.CreateQuestionException("Колличество ответов должно быть больше нуля")
 
-    def create_instance(cls, data: dict):
+    @classmethod
+    def create_instance(cls, data: dict) -> object:
         return cls(None, data["ques"], data["ans"])
 
-    def toDict(self):
+    def toDict(self) -> dict:
         return {"idQues": self.id, "type": self.__type, "ques": self.ques, "countAns": len(self.__ans),
                 "ans": self.__ans}
 
