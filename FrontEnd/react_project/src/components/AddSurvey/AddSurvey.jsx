@@ -49,7 +49,6 @@ const AddSurvey = () => {
         axios.post("http://127.0.0.1:8000/addSurveys", newSurvey)
     }
 
-console.log(questions);
     return (
         <>
         <div className="container">

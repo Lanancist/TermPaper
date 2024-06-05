@@ -1,9 +1,11 @@
 import axios from "axios";
 import {useEffect, useState} from "react";
 import {Link} from "react-router-dom";
+import Modal from "./Modal/Modal";
 
 const Content = () => {
     const [contentData, setContentData] = useState([]);
+    const [modalActive, setModalActive] = useState(false);
     const getData = async () => {
             const data = await axios.get("http://127.0.0.1:8000/");
             setContentData(data.data);
@@ -41,7 +43,8 @@ const Content = () => {
                     ))}
                         </div>
                     </div>
-                    <Link to={"/addSurvey"}>Добавить анкету</Link>
+                    <button onClick={() => setModalActive(true)}>Добавить анкету</button>
+                    {modalActive && (<Modal setModalActive={setModalActive} />)}
                 </div>
             </div>
         </>

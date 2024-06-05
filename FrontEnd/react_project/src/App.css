@@ -32,4 +32,20 @@ grid-template-areas:
   margin-top: 10px;
 }
 
-
+.modal{
+  width: 400px;
+  position: absolute; 
+  background: #fff;
+  border: 1px solid #000;
+  border-radius: 4px;
+  top: 50%;
+  left: 50%;
+  margin-right: -50%;
+  transform: translate(-50%, -50%)
+}
+.modal-inner{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px;
+}
