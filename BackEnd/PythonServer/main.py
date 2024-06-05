@@ -1,12 +1,11 @@
 # uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
-from fastapi import FastAPI, UploadFile, File, Body
+from fastapi import FastAPI, UploadFile, File, Body, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-import MyException
 from CustomThread import *
-from Surveys import *
+from Survey import *
 
 app = FastAPI()
 
@@ -22,13 +21,13 @@ app.add_middleware(
 @app.get("/")
 def get_list_anc():
     try:
-        thread = CustomThread(target=Surveys.setDB)
+        thread = CustomThread(target=Survey.setDB)
         # Surveys.setDB()
         # list_sur = Surveys.get_list_sur()
         thread.start()
         thread.join()
 
-        thread = CustomThread(target=Surveys.get_list_sur)
+        thread = CustomThread(target=Survey.get_list_sur)
 
         thread.start()
         thread.join()
@@ -36,27 +35,28 @@ def get_list_anc():
 
         return JSONResponse(list_sur)
     except Exception:
-        return {"status": 500, "data": "Ошибка базы данных"}
+        raise HTTPException(status_code=500, detail="Ошибка в базе данных")
 
 
 @app.get('/Surveys/{id}')
-def get_questionnaire_name(id: int):
-    thread = CustomThread(target=Surveys.create_instance_id, args=(id,))
-    thread.start()
-    thread.join()
-    s = thread.local_result
+def get_surveys_id(id: int):
+    try:
+        thread = CustomThread(target=Survey.create_instance_id, args=(id,))
+        thread.start()
+        thread.join()
+        s = thread.local_result
 
-    thread = CustomThread(target=s.formAnc)
-    thread.start()
-    thread.join()
-    #
-    # print(thread.local_result)
+        if s == None:
+            raise MyException.CreateSurveyException(f"Анкеты c id: {id} не существует")
 
-    # s = Surveys.create_instance_id(id)
-    return JSONResponse(thread.local_result)
-    # return JSONResponse(s.formAnc())
-    # print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    # return {"status": 404, "data": e}
+        thread = CustomThread(target=s.formAnc)
+        thread.start()
+        thread.join()
+
+        return JSONResponse(thread.local_result)
+
+    except MyException.CreateSurveyException:
+        raise HTTPException(status_code=404, detail="Item not found")
 
 
 # @app.put("/upload")
@@ -67,58 +67,74 @@ def get_questionnaire_name(id: int):
 
 @app.put("/answers")
 def post(data=Body()):
-    thread = CustomThread(target=Surveys.upDate, args=(data,))
+    thread = CustomThread(target=Survey.upDate, args=(data,))
     thread.start()
     thread.join()
 
-    thread = CustomThread(target=Surveys.statistics1, args=(data,))
+    thread = CustomThread(target=Survey.statistics_all, args=(data,))
     thread.start()
     thread.join()
-
-    # Surveys.upDate(data)
 
     return JSONResponse(thread.local_result)
 
 
 @app.put("/statistics/{id}")
 def statistics_id(id: int):
-    thread = CustomThread(target=Surveys.create_instance_id, args=(id,))
-    thread.start()
-    thread.join()
-    s = thread.local_result
-    # s = Surveys.create_instance_id(id)
-    thread = CustomThread(target=s.statistics)
-    thread.start()
-    thread.join()
-    return JSONResponse(thread.local_result)
+    try:
+        thread = CustomThread(target=Survey.create_instance_id, args=(id,))
+        thread.start()
+        thread.join()
+        s = thread.local_result
+
+        if s == None:
+            raise MyException.CreateSurveyException(f"Анкеты c id: {id} не существует")
+
+        thread = CustomThread(target=s.statistics)
+        thread.start()
+        thread.join()
+        return JSONResponse(thread.local_result)
+
+    except MyException.CreateSurveyException:
+        raise HTTPException(status_code=404, detail="Item not found")
+
+
+@app.post("/statistics")
+def statistics_top(top: int = 5):
+    try:
+        thread = CustomThread(target=Survey.statistics_top, args=(top,))
+        thread.start()
+        thread.join()
+
+        return JSONResponse(thread.local_result)
+
+    except MyException.CreateSurveyException:
+        raise HTTPException(status_code=404, detail="Item not found")
 
 
 @app.post("/addSurveys")
 def post(data=Body()):
     try:
-        thread = CustomThread(target=Surveys.create_instance_json, args=(data,))
+        thread = CustomThread(target=Survey.create_instance_json, args=(data,))
         thread.start()
         thread.join()
 
         s = thread.local_result
 
+        if s == None:
+            raise MyException.CreateSurveyException(f"Ошибка формирования анкеты")
+
         thread = CustomThread(target=s.add_surveys_in_db)
         thread.start()
         thread.join()
 
-        # s = Surveys.create_instance_json(data)
-        # s.add_surveys_in_db()
 
-        return JSONResponse({"?": True})
-    except Exception:
-        print("ATATATATATATATATA!!!!!!!!!!!!!!!!!!")
-        return JSONResponse({"?": False})
+    except MyException.CreateSurveyException:
+        raise HTTPException(status_code=404, detail="err")
 
 
 @app.delete("/admin/Surveys/{id}")
 def delete(id: int):
-    thread = CustomThread(target=Surveys.del_surv, args=(id,))
+    thread = CustomThread(target=Survey.del_surv, args=(id,))
     thread.start()
     thread.join()
-    # Surveys.del_surv(id)
     return {}
