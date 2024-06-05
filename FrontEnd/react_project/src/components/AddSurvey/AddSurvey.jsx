@@ -1,6 +1,7 @@
 import axios from "axios";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import Questions from "../questions/Questions";
 
 const AddSurvey = () => {
     const [selectVal, setSelectVal] = useState("qma");
@@ -49,6 +50,8 @@ const AddSurvey = () => {
         axios.post("http://127.0.0.1:8000/addSurveys", newSurvey)
     }
 
+    console.log(questions);
+
     return (
         <>
         <div className="container">
@@ -79,6 +82,12 @@ const AddSurvey = () => {
             <button onClick={createSurvey}>Создать анкету</button>
             </div>
           <Link to="/">Назад</Link>
+          <section className="yourQuestions">
+             <h3>Ваши вопросы:</h3>
+          {questions?.map((item, quesIndex) => (
+            <Questions question={item} quesIndex={quesIndex} handleInputChange={() => null} statistics={[]} />
+          ))}
+          </section>
         </div>
         </>
     )
