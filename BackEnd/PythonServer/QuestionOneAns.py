@@ -32,6 +32,6 @@ class QuestionOneAns(Question.Question):
 
             for i, ans in enumerate(self.__ans, 1):
                 cur.execute(f"""INSERT INTO Answers (AnswerText, AnswerOrder, SelectedCount, QuestionID)
-                VALUES ('{ans}', {i}, 0, {self.id});""")
+                VALUES ('{ans}', {i}, 0, {self._id});""")
 
             con.commit()
