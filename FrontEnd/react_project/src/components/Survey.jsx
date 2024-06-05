@@ -3,7 +3,7 @@ import axios from "axios";
 import { Link, useParams } from "react-router-dom";
 import Questions from "./questions/Questions";
 
-const Survey = ({isStatistic}) => {
+const Survey = ({isStatistic = false}) => {
   const [data, setData] = useState([]);
   const [answers, setAnswers] = useState([]);
   const [statistics, setStatistics] = useState([]);
@@ -24,11 +24,15 @@ const Survey = ({isStatistic}) => {
   };
 
   const getStatistics = async () => {
-     const res = await axios.put(`http://127.0.0.1:8000/statistics/${id}`);
-     console.log(res.data);
-    // setStatistics(res.data);
+    try {
+       const res = await axios.put(`http://127.0.0.1:8000/statistics/${id}`);
+     console.log(res.data, 'stat');
+    setStatistics(res.data);
+    } catch (error) {
+      console.error(error)
+    }
   }
-getStatistics()
+
   const handleInputChange = (ques, ans) => {
     const arrToCopy = [...answers];
     const itemToUpdate = arrToCopy.find((item) => item.ques === ques);
@@ -64,7 +68,7 @@ getStatistics()
               data.questions.map((item, quesIndex) => {
                 return (
                   <div className="ansvers" key={quesIndex}>
-            <Questions question={item} statistics={statistics} quesIndex={quesIndex} handleInputChange={handleInputChange} />
+            <Questions question={item} statistics={statistics} quesIndex={quesIndex} handleInputChange={handleInputChange}  isStatistic={isStatistic}/>
                     {item.type === "qo" && (
                        <input
                          type="text"
@@ -76,7 +80,7 @@ getStatistics()
                   </div>
                 );
               })}
-              {activeBtn && <button onClick={handleSubmit}>Отправить</button>}
+              {activeBtn || isStatistic && <button onClick={handleSubmit}>Отправить</button>}
           </form>
           <Link to="/">Назад</Link>
         </div>

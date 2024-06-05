@@ -1,8 +1,10 @@
-const Answer = ({ans, ratingOfAnswers, item, statistics, handleInputChange}) => {
+const Answer = ({ans, ratingOfAnswers, item, statistics, handleInputChange, isStatistic}) => {
     return (
         <>
                           <label>
-                            {item.type === "qma" ? (
+                            {!isStatistic && (
+                              <>
+                              {item.type === "qma" ? (
                               <input
                                 type="checkbox"
                                 onChange={() => handleInputChange(item.ques, ans)}
@@ -16,6 +18,8 @@ const Answer = ({ans, ratingOfAnswers, item, statistics, handleInputChange}) => 
                                 value={ans}
                               />
                             ) : null}
+                              </>
+                            )}
                             <span>
                             {ans}
                             </span>

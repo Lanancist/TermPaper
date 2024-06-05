@@ -31,10 +31,11 @@ const Content = () => {
                     ))}
                         </div>
                         <div className="statistics">
+                            <h3>Статистика</h3>
                                 <div>Общее количество анкет: {contentData.countSurveys}</div>
                     {contentData.surveys?.map((item) => (
                         <div style={{ display: "flex", justifyContent: "space-between" }}>
-                        <Link key={item.id} to={`/surveys/${item.id}`}>{item.name}</Link>
+                        <Link key={item.id} to={`/statistic/${item.id}`}>{item.name}</Link>
                             <div>Количество вопросов: {item.countQuestions}</div>
                         </div>
                     ))}

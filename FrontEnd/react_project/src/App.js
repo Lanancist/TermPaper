@@ -13,7 +13,7 @@ function App() {
         <Routes>
             <Route path="/" element={<Content/>} />
             <Route path="/surveys/:id" element={<Survey/>} />
-            <Route path="/statistic/:id" element={<Survey />} />
+            <Route path="/statistic/:id" element={<Survey isStatistic />} />
         </Routes>
     </div>
   );
