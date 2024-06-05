@@ -23,4 +23,13 @@ grid-template-areas:
   justify-content: space-between;
 }
 
+.addSurvey-inner{
+  display: flex;
+  flex-direction: column;
+}
+
+.addSurvey-inner > label{
+  margin-top: 10px;
+}
+
 

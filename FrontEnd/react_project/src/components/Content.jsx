@@ -41,6 +41,7 @@ const Content = () => {
                     ))}
                         </div>
                     </div>
+                    <Link to={"/addSurvey"}>Добавить анкету</Link>
                 </div>
             </div>
         </>
