@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Questions from "../questions/Questions";
 
 const AddSurvey = () => {
@@ -9,6 +9,8 @@ const AddSurvey = () => {
     const [nameOfSurvey, setNameOfSurvey] = useState("");
     const [answers, setAnswers] = useState("");
     const [questions, setQuestions] = useState([]);
+    const navigate = useNavigate();
+
 
     const selectHandler = (e) => {
         setSelectVal(e.target.value)
@@ -47,7 +49,9 @@ const AddSurvey = () => {
             count: questions.length,
             questions: questions,
         }
-        axios.post("http://127.0.0.1:8000/addSurveys", newSurvey)
+        axios.post("http://127.0.0.1:8000/addSurveys", newSurvey).finally(() => {
+        return navigate("/");
+        })
     }
 
     console.log(questions);

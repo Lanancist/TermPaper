@@ -53,3 +53,8 @@ grid-template-areas:
 .yourQuestions{
   margin-top: 20px;
 }
+
+.delete{
+  cursor: pointer;
+  margin-left: 10px;
+}
