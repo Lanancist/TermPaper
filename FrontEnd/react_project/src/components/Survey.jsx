@@ -80,7 +80,7 @@ const Survey = ({isStatistic = false}) => {
                   </div>
                 );
               })}
-              {activeBtn || isStatistic && <button onClick={handleSubmit}>Отправить</button>}
+              {activeBtn && !isStatistic  && <button onClick={handleSubmit}>Отправить</button>}
           </form>
           <Link to="/">Назад</Link>
         </div>
