@@ -7,20 +7,20 @@ class QuestionOneAns(Question.Question):
     __type: str = "qoa"
     __ans: list[str]
 
-    def __init__(self, id: int, ques: str, ans: list[str] = []):
+    def __init__(self, id: int, ques: str, ans: list[str] = []) -> object:
         super().__init__(id, ques)
         self.__ans = ans
         if len(self.__ans) == 0:
             raise MyException.CreateQuestionException("Колличество ответов должно быть больше нуля")
 
-    def create_instance(cls, data: dict):
+    def create_instance(cls, data: dict) -> object:
         return cls(None, data["ques"], data["ans"])
 
-    def toDict(self):
+    def toDict(self) -> dict:
         return {"idQues": self._id, "type": self.__type, "ques": self._ques, "countAns": len(self.__ans),
                 "ans": self.__ans}
 
-    def add_in_db(self, SurveyID: int, QuestionNumberInSurvey: int):
+    def add_in_db(self, SurveyID: int, QuestionNumberInSurvey: int) -> None:
         with sq.connect("Surveys.db") as con:
             cur = con.cursor()
 

@@ -108,7 +108,7 @@ class Survey:
         return d
 
     @classmethod
-    def setDB(cls):
+    def setDB(cls) -> None:
         db_lock = threading.Lock()
         with db_lock:
             con = sq.connect("Surveys.db")
@@ -142,7 +142,7 @@ class Survey:
 
             con.close()
 
-    def add_surveys_in_db(self):  # !!!!!!!!!!!!!!!!!!!!!!!
+    def add_surveys_in_db(self) -> None:  # !!!!!!!!!!!!!!!!!!!!!!!
         # print("Запуск")
         db_lock = threading.Lock()
         with db_lock:
@@ -165,7 +165,7 @@ class Survey:
                 con.commit()
 
     @classmethod
-    def upDate(cls, data: dict):  # !!!!!!!!!!!!!!!!!!!!!!!
+    def upDate(cls, data: dict) -> None:  # !!!!!!!!!!!!!!!!!!!!!!!
         db_lock = threading.Lock()
         with db_lock:
             with sq.connect("Surveys.db") as con:
@@ -208,7 +208,7 @@ class Survey:
                 con.commit()
 
     @classmethod
-    def del_surv(cls, id: int):
+    def del_surv(cls, id: int) -> None:
         db_lock = threading.Lock()
         with db_lock:
             with sq.connect("Surveys.db") as con:

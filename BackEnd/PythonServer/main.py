@@ -31,7 +31,7 @@ def get_list_anc():
 
         thread.start()
         thread.join()
-        list_sur = thread.local_result
+        list_sur = thread.get_res()
 
         return JSONResponse(list_sur)
     except Exception:
@@ -44,7 +44,7 @@ def get_surveys_id(id: int):
         thread = CustomThread(target=Survey.create_instance_id, args=(id,))
         thread.start()
         thread.join()
-        s = thread.local_result
+        s = thread.get_res()
 
         if s == None:
             raise MyException.CreateSurveyException(f"Анкеты c id: {id} не существует")
@@ -53,7 +53,7 @@ def get_surveys_id(id: int):
         thread.start()
         thread.join()
 
-        return JSONResponse(thread.local_result)
+        return JSONResponse(thread.get_res())
 
     except MyException.CreateSurveyException:
         raise HTTPException(status_code=404, detail="Item not found")
@@ -75,7 +75,7 @@ def post(data=Body()):
     thread.start()
     thread.join()
 
-    return JSONResponse(thread.local_result)
+    return JSONResponse(thread.get_res())
 
 
 @app.put("/statistics/{id}")
@@ -84,7 +84,7 @@ def statistics_id(id: int):
         thread = CustomThread(target=Survey.create_instance_id, args=(id,))
         thread.start()
         thread.join()
-        s = thread.local_result
+        s = thread.get_res()
 
         if s == None:
             raise MyException.CreateSurveyException(f"Анкеты c id: {id} не существует")
@@ -92,7 +92,7 @@ def statistics_id(id: int):
         thread = CustomThread(target=s.statistics)
         thread.start()
         thread.join()
-        return JSONResponse(thread.local_result)
+        return JSONResponse(thread.get_res())
 
     except MyException.CreateSurveyException:
         raise HTTPException(status_code=404, detail="Item not found")
@@ -105,7 +105,7 @@ def statistics_top(top: int = 5):
         thread.start()
         thread.join()
 
-        return JSONResponse(thread.local_result)
+        return JSONResponse(thread.get_res())
 
     except MyException.CreateSurveyException:
         raise HTTPException(status_code=404, detail="Item not found")
@@ -118,7 +118,7 @@ def post(data=Body()):
         thread.start()
         thread.join()
 
-        s = thread.local_result
+        s = thread.get_res()
 
         if s == None:
             raise MyException.CreateSurveyException(f"Ошибка формирования анкеты")
@@ -134,6 +134,7 @@ def post(data=Body()):
 
 @app.delete("/admin/Surveys/{id}")
 def delete(id: int):
+    # print('Удаление анкеты ', id)
     thread = CustomThread(target=Survey.del_surv, args=(id,))
     thread.start()
     thread.join()

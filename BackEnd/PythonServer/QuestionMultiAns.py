@@ -7,7 +7,7 @@ class QuestionMultiAns(Question.Question):
     __type: str = "qma"
     __ans: list[str]
 
-    def __init__(self, id: int, ques: str, ans: list[str] = []):
+    def __init__(self, id: int, ques: str, ans: list[str] = []) -> object:
         super().__init__(id, ques)
         self.__ans = ans
         if len(self.__ans) == 0:
@@ -21,7 +21,7 @@ class QuestionMultiAns(Question.Question):
         return {"idQues": self._id, "type": self.__type, "ques": self._ques, "countAns": len(self.__ans),
                 "ans": self.__ans}
 
-    def add_in_db(self, SurveyID: int, QuestionNumberInSurvey: int):
+    def add_in_db(self, SurveyID: int, QuestionNumberInSurvey: int) -> None:
         with sq.connect("Surveys.db") as con:
             cur = con.cursor()
 
