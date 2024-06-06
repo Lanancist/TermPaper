@@ -6,6 +6,8 @@ import Modal from "./Modal/Modal";
 const Content = () => {
     const [contentData, setContentData] = useState([]);
     const [modalActive, setModalActive] = useState(false);
+    const [modalRedirectPath, setModalRedirectPath] = useState("");
+    const [modalCallback, setModalCallback] = useState(null);
 
     const getData = async () => {
             const data = await axios.get("http://127.0.0.1:8000/");
@@ -36,7 +38,11 @@ const Content = () => {
                         <div style={{ display: "flex", justifyContent: "space-between" }}>
                         <Link key={item.id} to={`/surveys/${item.id}`}>{item.name}</Link>
                             <div>Количество вопросов: {item.countQuestions}</div>
-                            <div className="delete" onClick={() => deleteSurvey(item.id)}>x</div>
+                            <div className="delete" onClick={() => {
+                                setModalActive(true);
+                                setModalCallback({func: deleteSurvey, args: item.id});
+                                setModalRedirectPath("/");
+                            } }>x</div>
                         </div>
                         </>
                     ))}
@@ -52,8 +58,11 @@ const Content = () => {
                     ))}
                         </div>
                     </div>
-                    <button onClick={() => setModalActive(true)}>Добавить анкету</button>
-                    {modalActive && (<Modal setModalActive={setModalActive} />)}
+                    <button onClick={() => {
+                        setModalActive(true)
+                        setModalRedirectPath("/addSurvey");
+                    } }>Добавить анкету</button>
+                    {modalActive && (<Modal setModalActive={setModalActive} path={modalRedirectPath} modalCallback={modalCallback}/>)}
                 </div>
             </div>
         </>
