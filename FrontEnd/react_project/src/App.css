@@ -41,7 +41,8 @@ grid-template-areas:
   top: 50%;
   left: 50%;
   margin-right: -50%;
-  transform: translate(-50%, -50%)
+  transform: translate(-50%, -50%);
+  z-index: 99999999;
 }
 .modal-inner{
   display: flex;
@@ -57,4 +58,9 @@ grid-template-areas:
 .delete{
   cursor: pointer;
   margin-left: 10px;
+}
+
+.allStatistick{
+  margin-top: 20px;
+  margin-bottom: 20px;
 }

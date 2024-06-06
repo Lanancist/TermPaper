@@ -2,6 +2,7 @@ import axios from "axios";
 import {useEffect, useState} from "react";
 import {Link} from "react-router-dom";
 import Modal from "./Modal/Modal";
+import {Bar, BarChart, CartesianGrid, Legend, Tooltip, XAxis, YAxis} from "recharts";
 
 const Content = () => {
     const [contentData, setContentData] = useState([]);
@@ -10,8 +11,17 @@ const Content = () => {
     const [modalCallback, setModalCallback] = useState(null);
 
     const getData = async () => {
-            const data = await axios.get("http://127.0.0.1:8000/");
-            setContentData(data.data);
+            await axios.get("http://127.0.0.1:8000/")
+                .then((res) => {
+                    setContentData(res.data);
+                    getDataGraph(res.data.surveys);
+            });
+    }
+    const getDataGraph = (data) => {
+    return  data.map((item) => {
+           return {name: item.name, CompletedCount: item.CompletedCount};
+        })
+
     }
     
     const deleteSurvey = async (id) => {
@@ -63,6 +73,15 @@ const Content = () => {
                         setModalRedirectPath("/addSurvey");
                     } }>Добавить анкету</button>
                     {modalActive && (<Modal setModalActive={setModalActive} path={modalRedirectPath} modalCallback={modalCallback}/>)}
+                    <h3 className="allStatistick">Общая статистика</h3>
+                    <BarChart width={1000} height={350} data={getDataGraph(contentData.surveys ? contentData.surveys : [])}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Bar dataKey="CompletedCount" fill="#8884d8" />
+                    </BarChart>
                 </div>
             </div>
         </>
