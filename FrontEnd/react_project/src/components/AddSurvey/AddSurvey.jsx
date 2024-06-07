@@ -2,6 +2,8 @@ import axios from "axios";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Questions from "../questions/Questions";
+import Error from '../Modal/Error';
+
 
 const AddSurvey = () => {
     const [selectVal, setSelectVal] = useState("qma");
@@ -10,6 +12,8 @@ const AddSurvey = () => {
     const [answers, setAnswers] = useState("");
     const [questions, setQuestions] = useState([]);
     const navigate = useNavigate();
+    const [visibleErr, setVisibleErr] = useState(false);
+    const [textErr, setTextErr] = useState('');
 
 
     const selectHandler = (e) => {
@@ -29,7 +33,13 @@ const AddSurvey = () => {
     }
 
     const createQuestion = () => {
-        const ans = answers.split(",");
+        if ((nameOfQuestion.length === 0) || ((answers.length === 0) && (selectVal !== 'qo'))){
+            setVisibleErr(true)
+            setTextErr('Нельзя создать пустой вопрос. Убедитесь, что все поля заполнены!');
+            return;
+        }
+        setVisibleErr(false)
+        const ans = answers.replaceAll('/n', ' ').split(";");
         const newQuestion = {
             type: selectVal,
             ques: nameOfQuestion,
@@ -44,6 +54,12 @@ const AddSurvey = () => {
     }
 
     const createSurvey = () => {
+        console.log(questions);
+        if (questions == 0){
+            setVisibleErr(true)
+            setTextErr('Нельзя создать пустую анкету!');
+            return;
+        }
         const newSurvey = {
             name: nameOfSurvey,
             count: questions.length,
@@ -65,8 +81,8 @@ const AddSurvey = () => {
                 <input type="text" placeholder="Название анкеты..." value={nameOfSurvey} onChange={(e) => nameOfSurveyHandler(e)} />
             </label>
             <label>
-                <p>Напишите название вопроса</p>
-                <input type="text" placeholder="Название вопроса..." value={nameOfQuestion} onChange={(e) => nameOfQuestionHandler(e)} />
+                <p>Напишите текст вопроса</p>
+                <input type="text" placeholder="Текст вопроса..." value={nameOfQuestion} onChange={(e) => nameOfQuestionHandler(e)} />
             </label>
             <label>
                 <p>Выберите тип вопроса</p>
@@ -78,10 +94,12 @@ const AddSurvey = () => {
             </label>
             {selectVal !== "qo" && (
             <label>
-                <p>Напишите ответы к вопросу через запятую</p>
-                <input type="text" value={answers} onChange={(e) => answersHandler(e)}/>
+                <p>Напишите ответы к вопросу через точку с зяпятой ";"</p>
+                <textarea type="text" value={answers} onChange={(e) => answersHandler(e)}/>
             </label>
             )}
+            <div onClick={() => {setVisibleErr(false)}}>{visibleErr && (<Error setVisibleErr={visibleErr} setTextErr={textErr}/>)}</div>
+            
             <button onClick={createQuestion}>Создать вопрос</button>
             <button onClick={createSurvey}>Создать анкету</button>
             </div>

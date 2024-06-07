@@ -3,7 +3,7 @@ import axios from "axios";
 import { Link, useParams } from "react-router-dom";
 import Questions from "./questions/Questions";
 
-const Survey = ({isStatistic = false}) => {
+const Survey = ({ isStatistic = false }) => {
   const [data, setData] = useState([]);
   const [answers, setAnswers] = useState([]);
   const [statistics, setStatistics] = useState([]);
@@ -12,7 +12,7 @@ const Survey = ({isStatistic = false}) => {
 
   useEffect(() => {
     getData();
-    if(isStatistic) getStatistics();
+    if (isStatistic) getStatistics();
   }, []);
 
   const getData = async () => {
@@ -25,13 +25,13 @@ const Survey = ({isStatistic = false}) => {
 
   const getStatistics = async () => {
     try {
-       const res = await axios.put(`http://127.0.0.1:8000/statistics/${id}`);
-     console.log(res.data, 'stat');
-    setStatistics(res.data);
+      const res = await axios.put(`http://127.0.0.1:8000/statistics/${id}`);
+      console.log(res.data, "stat");
+      setStatistics(res.data);
     } catch (error) {
-      console.error(error)
+      console.error(error);
     }
-  }
+  };
 
   const handleInputChange = (ques, ans) => {
     const arrToCopy = [...answers];
@@ -53,7 +53,7 @@ const Survey = ({isStatistic = false}) => {
         ...newObj,
       })
       .then((res) => {
-        console.log(res.data, 'res');
+        console.log(res.data, "res");
         setStatistics(res.data);
         setActiveBtn(false);
       });
@@ -68,19 +68,27 @@ const Survey = ({isStatistic = false}) => {
               data.questions.map((item, quesIndex) => {
                 return (
                   <div className="ansvers" key={quesIndex}>
-            <Questions question={item} statistics={statistics} quesIndex={quesIndex} handleInputChange={handleInputChange}  isStatistic={isStatistic}/>
+                    <Questions
+                      question={item}
+                      statistics={statistics}
+                      quesIndex={quesIndex}
+                      handleInputChange={handleInputChange}
+                      isStatistic={isStatistic}
+                    />
                     {item.type === "qo" && (
-                       <input
-                         type="text"
-                         onKeyDown={(e) =>
-                           handleInputChange(item.ques, e.target.value)
-                         }
-                       />
-                    )} 
+                      <input
+                        type="text"
+                        onKeyDown={(e) =>
+                          handleInputChange(item.ques, e.target.value)
+                        }
+                      />
+                    )}
                   </div>
                 );
               })}
-              {activeBtn && !isStatistic  && <button onClick={handleSubmit}>Отправить</button>}
+            {activeBtn && !isStatistic && (
+              <button onClick={handleSubmit}>Отправить</button>
+            )}
           </form>
           <Link to="/">Назад</Link>
         </div>
@@ -90,3 +98,4 @@ const Survey = ({isStatistic = false}) => {
 };
 
 export default Survey;
+

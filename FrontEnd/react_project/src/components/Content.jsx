@@ -19,7 +19,7 @@ const Content = () => {
     }
     const getDataGraph = (data) => {
     return  data.map((item) => {
-           return {name: item.name, CompletedCount: item.CompletedCount};
+          return {name: item.name, CompletedCount: item.CompletedCount};
         })
 
     }

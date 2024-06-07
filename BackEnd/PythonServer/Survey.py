@@ -1,5 +1,4 @@
 import threading
-from typing import overload
 
 import MyException
 import Question
@@ -15,7 +14,8 @@ class Survey:
     _questions: list[Question]
     _name: str
 
-    def __init__(self, id, name: str = "NoName", questions: list[Question] = []) -> object:
+    def __init__(self, id, name: str = "NoName",
+                 questions: list[Question] = []) -> object:  # Конструктор из списка вопросов
         self._id = id
         self._name = name
         if len(questions) == 0:
@@ -23,11 +23,18 @@ class Survey:
         self._questions = questions
 
     @classmethod
-    def create_instance_id(cls, id: int) -> object:
+    def create_instance_id(cls, id: int) -> object:  # Конструктор из базы данных по id
         db_lock = threading.Lock()
         with db_lock:
             with sq.connect("Surveys.db") as con:
                 cur = con.cursor()
+
+                name = cur.execute(f"""SELECT SurveyTitle
+                                            FROM Surveys
+                                            WHERE SurveyID = {id};""").fetchone()
+
+                if name == None:
+                    raise MyException.CreateSurveyException(f"Анкеты c id: {id} не существует")
 
                 cur.execute(f"""SELECT Q.QuestionID, Q.QuestionType, Q.QuestionText, Q.AnswerOptionsCount, Q.SurveyID, Q.QuestionNumberInSurvey, Q.ResponseCount
                                         FROM Questions AS Q
@@ -58,17 +65,10 @@ class Survey:
                     elif ques[1] == 2:
                         list_question.append(QuestionMultiAns(ques[0], ques[2], list_ans))
 
-                name = cur.execute(f"""SELECT SurveyTitle
-                                            FROM Surveys
-                                            WHERE SurveyID = {id};""").fetchone()
-
-                if name == None:
-                    raise MyException.CreateSurveyException(f"Анкеты c id: {id} не существует")
-
                 return cls(id, name[0], list_question)
 
     @classmethod
-    def create_instance_json(cls, data: dict) -> object:
+    def create_instance_json(cls, data: dict) -> object:  # Конструктор из json файла
         list_question = []
         for i in range(data["count"]):
             if data["questions"][i]["type"] == "qo":
@@ -80,7 +80,7 @@ class Survey:
         return cls(None, data["name"], list_question)
 
     @classmethod
-    def get_list_sur(cls) -> dict:
+    def get_list_sur(cls) -> dict:  # Функция запроса в всех анкет из базы данных
         db_lock = threading.Lock()
         with db_lock:
             with sq.connect("Surveys.db") as con:
@@ -98,9 +98,10 @@ class Survey:
                         {"id": sur[0], "name": sur[1], "countQuestions": sur[2], "CompletedCount": sur[3]})
 
                 d = {"countSurveys": count, "surveys": list_surveys}
+
             return d
 
-    def formAnc(self) -> dict:
+    def formAnc(self) -> dict:  # преобразование обьекта в json
         list_ques = []
         for i in range(len(self._questions)):
             list_ques.append(self._questions[i].toDict())
@@ -108,7 +109,7 @@ class Survey:
         return d
 
     @classmethod
-    def setDB(cls) -> None:
+    def setDB(cls) -> None:  # инициализация базы данных
         db_lock = threading.Lock()
         with db_lock:
             con = sq.connect("Surveys.db")
@@ -142,7 +143,7 @@ class Survey:
 
             con.close()
 
-    def add_surveys_in_db(self) -> None:  # !!!!!!!!!!!!!!!!!!!!!!!
+    def add_surveys_in_db(self) -> None:  # добавление экземпляра класса в базу данных
         # print("Запуск")
         db_lock = threading.Lock()
         with db_lock:
@@ -165,7 +166,7 @@ class Survey:
                 con.commit()
 
     @classmethod
-    def upDate(cls, data: dict) -> None:  # !!!!!!!!!!!!!!!!!!!!!!!
+    def upDate(cls, data: dict) -> None:  # Обновление базы данных, запись результатов анкетирования
         db_lock = threading.Lock()
         with db_lock:
             with sq.connect("Surveys.db") as con:
@@ -208,7 +209,7 @@ class Survey:
                 con.commit()
 
     @classmethod
-    def del_surv(cls, id: int) -> None:
+    def del_surv(cls, id: int) -> None:  # удаление анкеты
         db_lock = threading.Lock()
         with db_lock:
             with sq.connect("Surveys.db") as con:
@@ -226,7 +227,7 @@ class Survey:
                     DELETE FROM Surveys WHERE SurveyID = {id}; COMMIT;""")
 
     @classmethod
-    def statistics_all(cls, data: dict) -> dict:
+    def statistics_all(cls, data: dict) -> dict:  # Подсчет статистических данных из словоря
         # print("qwertyuiop")
         db_lock = threading.Lock()
         with db_lock:
@@ -264,7 +265,7 @@ class Survey:
 
             return d
 
-    def statistics(self) -> dict:
+    def statistics(self) -> dict:  # подсчет статистики по id
         db_lock = threading.Lock()
         with db_lock:
             with sq.connect("Surveys.db") as con:
@@ -297,7 +298,7 @@ class Survey:
             return d
 
     @classmethod
-    def statistics_top(cls, top: int):
+    def statistics_top(cls, top: int):  # формирование спискасамых популярных анкет
         if top <= 0:
             raise MyException.CreateSurveyException
         db_lock = threading.Lock()

@@ -33,13 +33,47 @@ label > select, input{
   margin-top: 5px;
   margin-right: 10px;
 }
-button{
-  margin-top: 10px;
-  padding: 5px;
-  background-color: transparent;
-  border:1px solid #000;
-  cursor: pointer;
+button {
+  background-color: #007bff; /* Синяя цветовая схема */
+  color: white; /* Белый текст */
+  font-size: 16px; /* Размер шрифта */
+  padding: 12px 24px; /* Отступы вокруг текста */
+  margin: 8px; /* Отступы вокруг элемента */
+  border: none; /* Убираем стандартные границы */
+  border-radius: 50px; /* Скругленные углы */
+  cursor: pointer; /* Изменяем курсор на указатель при наведении */
+  transition: background-color 0.3s ease; /* Анимация изменения фона */
+
+  &:hover {
+    background-color: #0056b3; /* Темнее синий фон при наведении */
+  }
+
+  &:active {
+    background-color: #004085; /* Еще темнее синий фон при нажатии */
+  }
 }
+
+Link {
+  text-decoration: none; /* Убираем подчеркивание */
+  color: #007bff; /* Цвет текста */
+  font-weight: bold; /* Жирный текст */
+  font-size: 18px; /* Размер шрифта */
+  padding: 10px 15px; /* Отступы вокруг текста */
+  border-radius: 5px; /* Скругленные углы */
+  display: inline-block; /* Позволяет задать ширину и высоту */
+  transition: background-color 0.3s ease, transform 0.3s ease; /* Анимация изменения фона и масштаба */
+
+  &:hover {
+    background-color: #0056b3; /* Темнее синий фон при наведении */
+    transform: translateY(-2px); /* Немного поднимает ссылку при наведении */
+  }
+
+  &:active {
+    background-color: #004085; /* Еще темнее синий фон при нажатии */
+    transform: translateY(0); /* Возвращаем ссылку в исходное положение после нажатия */
+  }
+}
+
 p > input {
   margin-right: 10px;
 }
