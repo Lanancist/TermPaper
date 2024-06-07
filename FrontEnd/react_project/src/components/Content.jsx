@@ -3,6 +3,7 @@ import {useEffect, useState} from "react";
 import {Link} from "react-router-dom";
 import Modal from "./Modal/Modal";
 import {Bar, BarChart, CartesianGrid, Legend, Tooltip, XAxis, YAxis} from "recharts";
+import "./Content.css";
 
 const Content = () => {
     const [contentData, setContentData] = useState([]);
@@ -37,22 +38,22 @@ const Content = () => {
         <>
             <div className="content">
                 <div className="container">
+                    <div className="content-inner">
+                        <div className="surveys">
                     <h3 className="content-title">
                         Контент
                     </h3>
-                    <div className="content-inner">
-                        <div className="surveys">
                             <div>Общее количество анкет: {contentData.countSurveys}</div>
                     {contentData.surveys?.map((item) => (
                         <>
-                        <div style={{ display: "flex", justifyContent: "space-between" }}>
-                        <Link key={item.id} to={`/surveys/${item.id}`}>{item.name}</Link>
-                            <div>Количество вопросов: {item.countQuestions}</div>
+                        <div>
                             <div className="delete" onClick={() => {
                                 setModalActive(true);
                                 setModalCallback({func: deleteSurvey, args: item.id});
                                 setModalRedirectPath("/");
                             } }>x</div>
+                        <Link key={item.id} to={`/surveys/${item.id}`}>{item.name}</Link>
+                            <div>Количество вопросов: {item.countQuestions}</div>
                         </div>
                         </>
                     ))}
@@ -61,7 +62,7 @@ const Content = () => {
                             <h3>Статистика</h3>
                                 <div>Общее количество анкет: {contentData.countSurveys}</div>
                     {contentData.surveys?.map((item) => (
-                        <div style={{ display: "flex", justifyContent: "space-between" }}>
+                        <div>
                         <Link key={item.id} to={`/statistic/${item.id}`}>{item.name}</Link>
                             <div>Количество вопросов: {item.countQuestions}</div>
                         </div>

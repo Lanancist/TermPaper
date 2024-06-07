@@ -186,7 +186,11 @@ class Survey:
                         f"""UPDATE Questions SET ResponseCount = ResponseCount + 1 WHERE QuestionID IN ({ques["idQues"]});""")
 
                     for ans in ques["ans"]:
-                        if ques["type"] == 'qoa' or ques["type"] == 'qma':
+                        if ques["type"] == 'qoa':
+                            cur.execute(
+                                f"""UPDATE Answers SET SelectedCount = SelectedCount + 1 WHERE AnswerText IN ('{ques["ans"][-1]}') AND QuestionID IN ({ques["idQues"]});""")
+                            break
+                        if ques["type"] == 'qma':
 
                             cur.execute(
                                 f"""UPDATE Answers SET SelectedCount = SelectedCount + 1 WHERE AnswerText IN ('{ans}') AND QuestionID IN ({ques["idQues"]});""")

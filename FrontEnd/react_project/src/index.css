@@ -53,26 +53,6 @@ button {
   }
 }
 
-Link {
-  text-decoration: none; /* Убираем подчеркивание */
-  color: #007bff; /* Цвет текста */
-  font-weight: bold; /* Жирный текст */
-  font-size: 18px; /* Размер шрифта */
-  padding: 10px 15px; /* Отступы вокруг текста */
-  border-radius: 5px; /* Скругленные углы */
-  display: inline-block; /* Позволяет задать ширину и высоту */
-  transition: background-color 0.3s ease, transform 0.3s ease; /* Анимация изменения фона и масштаба */
-
-  &:hover {
-    background-color: #0056b3; /* Темнее синий фон при наведении */
-    transform: translateY(-2px); /* Немного поднимает ссылку при наведении */
-  }
-
-  &:active {
-    background-color: #004085; /* Еще темнее синий фон при нажатии */
-    transform: translateY(0); /* Возвращаем ссылку в исходное положение после нажатия */
-  }
-}
 
 p > input {
   margin-right: 10px;
@@ -81,3 +61,4 @@ p > input {
 label > div > span{
   margin-left: 15px;
 }
+
